@@ -205,3 +205,32 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Custom ignore rules
+NULLBYTE_PROMPT_INSTRUCTIONS.md
+
+# Private data — never push
+private/
+
+# Node.js / TypeScript build artifacts
+node_modules/
+packs/node_modules/
+packs/behavior_pack/scripts/
+*.mcaddon
+
+# Behavior pack local environment
+packs/.env
+
+# kubeconfig files
+kubeconfig*
+KUBECONFIG*
+
+# environment variable files
+*.env
+*.env.*
+
+# local configuration files
+config.local.yaml
+config.local.yml
+.history
+*.code-workspace

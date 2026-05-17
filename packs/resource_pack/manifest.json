@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "NullByte Resources",
+    "description": "HEXCORE Cybersecurity Evaluation Platform — Resource Pack",
+    "uuid": "REPLACE-WITH-THIRD-UUID-v4-DIFFERENT-FROM-BOTH-ABOVE",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 0]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "REPLACE-WITH-FOURTH-UUID-v4",
+      "version": [1, 0, 0]
+    }
+  ]
+}

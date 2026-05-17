@@ -1,0 +1,43 @@
+{
+  "format_version": "1.17",
+  "minecraft:npc_dialogue": {
+    "scenes": [
+      {
+        "scene_tag": "hr_intro",
+        "npc_name": "HR_BOT",
+        "text": "Welcome to HEXCORE.\n\nYou have been selected for a technical evaluation. Your objective is to navigate the facility and demonstrate competence across three network zones.\n\nThis session is monitored. Noise levels are recorded. All actions are logged.\n\nBegin when ready.",
+        "buttons": [
+          {
+            "name": "I'm ready. Start the evaluation.",
+            "commands": [
+              "/scoreboard players set @initiator nb_start 1"
+            ]
+          },
+          {
+            "name": "Give me a moment.",
+            "commands": []
+          }
+        ]
+      },
+      {
+        "scene_tag": "hr_midgame",
+        "npc_name": "HR_BOT",
+        "text": "Evaluation in progress.\n\nContinue through the facility. You are being assessed.",
+        "buttons": []
+      },
+      {
+        "scene_tag": "hr_victory",
+        "npc_name": "HR_BOT",
+        "text": "Evaluation complete.\n\nYou have demonstrated the skills required to operate within HEXCORE infrastructure.\n\nYour performance has been recorded. You will be contacted.",
+        "buttons": [
+          {
+            "name": "Collect report",
+            "commands": [
+              "/give @initiator minecraft:written_book 1 0 {\"title\":\"ROOT_ACCESS_GRANTED\",\"author\":\"HEXCORE\",\"pages\":[\"§lHEXCORE SYSTEMS§r\\n\\nAccess Level: ROOT\\n\\nCandidate: @initiator\\n\\nAll security zones cleared.\\n\\nWell done.\"]}"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

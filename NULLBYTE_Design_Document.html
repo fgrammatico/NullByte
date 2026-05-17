@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NULLBYTE — Minecraft Cybersecurity Adventure — Design Document</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep:      #0a0c0f;
+    --bg-panel:     #111418;
+    --bg-card:      #161b22;
+    --bg-input:     #1c2333;
+    --border:       #30363d;
+    --border-glow:  #00ff8844;
+    --text-primary: #e6edf3;
+    --text-muted:   #8b949e;
+    --text-dim:     #484f58;
+    --green:        #00ff88;
+    --green-dim:    #00ff8833;
+    --cyan:         #58a6ff;
+    --cyan-dim:     #58a6ff22;
+    --yellow:       #f0883e;
+    --yellow-dim:   #f0883e22;
+    --red:          #f85149;
+    --red-dim:      #f8514922;
+    --purple:       #bc8cff;
+    --purple-dim:   #bc8cff22;
+    --orange:       #ffa657;
+    --accent:       #00ff88;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Scanline Overlay ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Top Nav / Hero ── */
+  .hero {
+    background: linear-gradient(180deg, #0d1117 0%, var(--bg-deep) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 24px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, var(--green-dim) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--green-dim);
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text-primary);
+    position: relative;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-top: 12px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+  }
+
+  /* ── Layout ── */
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── Section Headers ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 56px 0 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header .num {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .section-header .tag {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border-glow); }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .card-header .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .card-header .badge {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: auto;
+  }
+
+  /* ── Color Variants ── */
+  .green-icon  { background: var(--green-dim); color: var(--green); }
+  .cyan-icon   { background: var(--cyan-dim); color: var(--cyan); }
+  .red-icon    { background: var(--red-dim); color: var(--red); }
+  .yellow-icon { background: var(--yellow-dim); color: var(--yellow); }
+  .purple-icon { background: var(--purple-dim); color: var(--purple); }
+  .orange-icon { background: rgba(255,166,87,0.15); color: var(--orange); }
+
+  .badge-green  { background: var(--green-dim); color: var(--green); }
+  .badge-cyan   { background: var(--cyan-dim); color: var(--cyan); }
+  .badge-red    { background: var(--red-dim); color: var(--red); }
+  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+  .badge-purple { background: var(--purple-dim); color: var(--purple); }
+
+  /* ── Terminal Blocks ── */
+  .terminal {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .terminal-bar {
+    background: var(--bg-panel);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .dot-red   { background: #ff5f57; }
+  .dot-yel   { background: #ffbd2e; }
+  .dot-grn   { background: #28c840; }
+  .terminal-title {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+  .terminal-body {
+    padding: 18px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--green);
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .terminal-body .dim    { color: var(--text-dim); }
+  .terminal-body .muted  { color: var(--text-muted); }
+  .terminal-body .cyan   { color: var(--cyan); }
+  .terminal-body .red    { color: var(--red); }
+  .terminal-body .yellow { color: var(--yellow); }
+  .terminal-body .white  { color: var(--text-primary); }
+  .terminal-body .prompt { color: var(--green); }
+
+  /* ── Tables ── */
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead {
+    background: var(--bg-panel);
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+  .cmd { font-family: 'Courier New', monospace; color: var(--green); font-weight: 600; }
+  .perm { font-family: 'Courier New', monospace; font-size: 11px; padding: 2px 7px; border-radius: 3px; }
+  .perm-guest  { background: var(--purple-dim); color: var(--purple); }
+  .perm-user   { background: var(--cyan-dim);   color: var(--cyan); }
+  .perm-admin  { background: var(--yellow-dim); color: var(--yellow); }
+  .perm-root   { background: var(--red-dim);    color: var(--red); }
+  .noise-val   { font-family: 'Courier New', monospace; color: var(--yellow); }
+  .cat { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── Permission Tree ── */
+  .perm-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+  }
+  .perm-node {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+  }
+  .perm-line {
+    width: 2px;
+    background: var(--border);
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    bottom: -20px;
+  }
+  .perm-node:last-child .perm-line { display: none; }
+  .perm-node-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    width: 100%;
+    z-index: 1;
+  }
+  .perm-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+    border: 2px solid;
+  }
+  .circle-guest  { background: var(--purple-dim); border-color: var(--purple); color: var(--purple); }
+  .circle-user   { background: var(--cyan-dim);   border-color: var(--cyan);   color: var(--cyan); }
+  .circle-admin  { background: var(--yellow-dim); border-color: var(--yellow); color: var(--yellow); }
+  .circle-root   { background: var(--red-dim);    border-color: var(--red);    color: var(--red); box-shadow: 0 0 16px var(--red-dim); }
+  .perm-details h4 { font-size: 14px; color: var(--text-primary); margin-bottom: 2px; }
+  .perm-details p  { font-size: 12px; color: var(--text-muted); }
+  .perm-details .unlocks { font-size: 11px; color: var(--green); margin-top: 4px; font-family: 'Courier New', monospace; }
+
+  /* ── Noise Bar Visual ── */
+  .noise-spectrum {
+    display: flex;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 16px 0;
+    position: relative;
+  }
+  .noise-seg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.9);
+    text-transform: uppercase;
+  }
+  .seg-clean    { background: #1a3a2a; }
+  .seg-warning  { background: #3a3520; }
+  .seg-alert    { background: #3a2520; }
+  .seg-breach   { background: #4a1520; }
+  .seg-lockdown { background: #6a0a0a; }
+  .noise-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ── Exploit Chain Flow ── */
+  .exploit-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+  }
+  .chain-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .chain-line-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 44px;
+    flex-shrink: 0;
+  }
+  .chain-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .chain-connector {
+    width: 2px;
+    height: 32px;
+    background: var(--border);
+  }
+  .chain-step:last-child .chain-connector { display: none; }
+  .chain-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    flex: 1;
+    margin-bottom: 8px;
+  }
+  .chain-content h4 { font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
+  .chain-content p  { font-size: 12px; color: var(--text-muted); }
+  .chain-content .cmd-inline { font-family: 'Courier New', monospace; color: var(--green); }
+
+  /* ── Biome Puzzle Grid ── */
+  .biome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .biome-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .biome-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .biome-header h3 { font-size: 15px; font-weight: 600; }
+  .biome-header .area-badge { font-family: 'Courier New', monospace; font-size: 10px; padding: 2px 8px; border-radius: 3px; margin-left: auto; }
+  .biome-overworld .biome-header { background: linear-gradient(135deg, #1a2f1a, var(--bg-card)); }
+  .biome-overworld .biome-header h3 { color: #7cfc00; }
+  .biome-overworld .biome-header .area-badge { background: rgba(124,252,0,0.15); color: #7cfc00; }
+  .biome-nether .biome-header { background: linear-gradient(135deg, #3a1a0a, var(--bg-card)); }
+  .biome-nether .biome-header h3 { color: var(--orange); }
+  .biome-nether .biome-header .area-badge { background: rgba(255,166,87,0.15); color: var(--orange); }
+  .biome-end .biome-header { background: linear-gradient(135deg, #1a0a3a, var(--bg-card)); }
+  .biome-end .biome-header h3 { color: var(--purple); }
+  .biome-end .biome-header .area-badge { background: var(--purple-dim); color: var(--purple); }
+  .puzzle-list { padding: 16px 20px; }
+  .puzzle-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .puzzle-item:last-child { border-bottom: none; }
+  .puzzle-num {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    width: 20px;
+  }
+  .puzzle-item h5 { font-size: 13px; color: var(--text-primary); margin-bottom: 2px; }
+  .puzzle-item p  { font-size: 11px; color: var(--text-muted); }
+  .puzzle-item .reward { font-size: 10px; color: var(--green); font-family: 'Courier New', monospace; margin-top: 3px; }
+  .puzzle-item .concept { font-size: 10px; color: var(--purple); font-family: 'Courier New', monospace; }
+
+  /* ── Architecture Diagram ── */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .arch-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .arch-box h4 { font-size: 13px; color: var(--text-primary); margin-bottom: 6px; }
+  .arch-box p  { font-size: 11px; color: var(--text-muted); }
+  .arch-box .file { font-family: 'Courier New', monospace; font-size: 10px; color: var(--green); margin-top: 8px; }
+
+  /* ── File List ── */
+  .file-tree {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 2;
+    margin: 20px 0;
+  }
+  .ft-dir { color: var(--cyan); }
+  .ft-file { color: var(--green); }
+  .ft-comment { color: var(--text-dim); }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .arch-grid { grid-template-columns: 1fr; }
+    .biome-grid { grid-template-columns: 1fr; }
+    .wrapper { padding: 0 16px 60px; }
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin: 32px 0;
+  }
+  .toc h3 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+  .toc a {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.2s;
+  }
+  .toc a:last-child { border-bottom: none; }
+  .toc a:hover { color: var(--green); }
+  .toc a .toc-num { color: var(--green); font-family: 'Courier New', monospace; font-size: 12px; margin-right: 10px; }
+
+  /* ── Info / Note blocks ── */
+  .note {
+    border-left: 3px solid var(--cyan);
+    background: var(--cyan-dim);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .note-title { color: var(--cyan); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+
+  .warning {
+    border-left: 3px solid var(--yellow);
+    background: var(--yellow-dim);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .warning .note-title { color: var(--yellow); }
+
+  p.desc { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-badge">Design Document v1.0</div>
+  <h1><span>NULLBYTE</span></h1>
+  <p class="hero-sub">A hacker-themed Minecraft Bedrock Edition adventure where players progress by solving cybersecurity puzzles, exploiting simulated vulnerabilities, and racing to achieve root access before the system's defenses shut them out.</p>
+</div>
+
+<div class="wrapper">
+
+<!-- ── TABLE OF CONTENTS ── -->
+<div class="toc">
+  <h3>Contents</h3>
+  <a href="#architecture"><span class="toc-num">01</span> Architecture & File Structure</a>
+  <a href="#command-table"><span class="toc-num">02</span> Command Table</a>
+  <a href="#permission-tree"><span class="toc-num">03</span> Permission Escalation Tree</a>
+  <a href="#noise-model"><span class="toc-num">04</span> Noise &amp; Detection Model</a>
+  <a href="#terminal-flow"><span class="toc-num">05</span> Terminal UI Flow</a>
+  <a href="#exploit-chain"><span class="toc-num">06</span> Example Exploit Chain (Full Playthrough)</a>
+  <a href="#biome-puzzles"><span class="toc-num">07</span> Puzzles by Biome / Area</a>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  01 — ARCHITECTURE                                                      -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="section-header" id="architecture">
+  <div class="num">01</div>
+  <h2>Addon Architecture</h2>
+  <span class="tag">Core Systems</span>
+</div>
+
+<p class="desc">All core logic is implemented using Minecraft Bedrock Addons (Behavior Packs and Resource Packs). Custom scripts are not supported on Realms. The adventure is designed using in-game mechanics, tagged blocks, and creative use of Bedrock's UI and triggers.</p>
+
+<div class="note">
+  <div class="note-title">Multiplayer Support</div>
+  All progression, noise, and permissions are tracked per player using Addon mechanics. Multiple players can be at different stages simultaneously.
+</div>
+
+<div class="note">
+  <div class="note-title">Installing Addons</div>
+  <strong>Local:</strong> Download the <code>.mcpack</code> or <code>.mcaddon</code> file, open Minecraft Bedrock, and import via "Settings" → "Storage" → "Import". Apply the pack to your world.<br>
+  <strong>Realms:</strong> Create or edit a Realm, go to "Add-Ons" → "Behavior Packs" or "Resource Packs", upload and activate your pack.<br>
+  <em>Note: Realms do not support custom scripts or server-side code. Only Addons (packs) are allowed.</em>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  02 — COMMAND TABLE                                                     -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="command-table">
+  <div class="num">02</div>
+  <h2>Command Table</h2>
+  <span class="tag">16 Commands</span>
+</div>
+
+<p class="desc">All commands are defined declaratively in a static table. Each entry specifies permission requirements, noise costs, preconditions, success/failure logic, and side effects. No code changes are needed to add new commands — just append to the table.</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Command</th>
+      <th>Category</th>
+      <th>Perm</th>
+      <th>Noise ✓</th>
+      <th>Noise ✗</th>
+      <th>Precondition</th>
+      <th>Effect on Success</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- RECON -->
+    <tr>
+      <td><span class="cmd">scan</span></td>
+      <td><span class="cat">Recon</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">+2</span></td>
+      <td><span class="noise-val">+5</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Lists open ports &amp; services</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">ls</span></td>
+      <td><span class="cat">Recon</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">+1</span></td>
+      <td><span class="noise-val">+3</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Lists directory structure with lock indicators</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">cat /var/log/auth.log</span></td>
+      <td><span class="cat">Recon</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">+1</span></td>
+      <td><span class="noise-val">+4</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Reveals auth log with hint about default creds</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">cat /etc/config</span></td>
+      <td><span class="cat">Recon</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">+1</span></td>
+      <td><span class="noise-val">+4</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Shows system config; hints at firewall &amp; encryption</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">whoami</span></td>
+      <td><span class="cat">Meta</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">0</span></td>
+      <td><span class="noise-val">0</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Displays current permission, noise, threat level</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">help</span></td>
+      <td><span class="cat">Meta</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">0</span></td>
+      <td><span class="noise-val">0</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Lists all commands available at current permission</td>
+    </tr>
+    <!-- AUTH -->
+    <tr>
+      <td><span class="cmd">login</span></td>
+      <td><span class="cat">Auth</span></td>
+      <td><span class="perm perm-guest">guest</span></td>
+      <td><span class="noise-val">+3</span></td>
+      <td><span class="noise-val">+10</span></td>
+      <td><code>hasCredential</code></td>
+      <td>Escalates permission: guest → user</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">sudo</span></td>
+      <td><span class="cat">Auth</span></td>
+      <td><span class="perm perm-user">user</span></td>
+      <td><span class="noise-val">+8</span></td>
+      <td><span class="noise-val">+15</span></td>
+      <td><code>hasSudoPassword</code></td>
+      <td>Escalates permission: user → admin</td>
+    </tr>
+    <!-- EXPLOIT -->
+    <tr>
+      <td><span class="cmd">exploit firewall</span></td>
+      <td><span class="cat">Exploit</span></td>
+      <td><span class="perm perm-user">user</span></td>
+      <td><span class="noise-val">+15</span></td>
+      <td><span class="noise-val">+20</span></td>
+      <td><code>hasExploitToken</code> + firewall not patched</td>
+      <td>Bypasses firewall; unlocks Nether area</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">exploit ids</span></td>
+      <td><span class="cat">Exploit</span></td>
+      <td><span class="perm perm-user">user</span></td>
+      <td><span class="noise-val">+12</span></td>
+      <td><span class="noise-val">+18</span></td>
+      <td><code>hasIDSBypass</code></td>
+      <td>Disables IDS; doubles noise decay rate</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">exploit encryption</span></td>
+      <td><span class="cat">Exploit</span></td>
+      <td><span class="perm perm-admin">admin</span></td>
+      <td><span class="noise-val">+20</span></td>
+      <td><span class="noise-val">+25</span></td>
+      <td><code>encryptionKeyFound</code></td>
+      <td>Breaks encryption; arms root exploit</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">exploit root</span></td>
+      <td><span class="cat">Exploit</span></td>
+      <td><span class="perm perm-admin">admin</span></td>
+      <td><span class="noise-val">+50</span></td>
+      <td><span class="noise-val">+30</span></td>
+      <td><code>rootExploitReady</code> + must be in End</td>
+      <td>⭐ WIN: grants root, shuts down system</td>
+    </tr>
+    <!-- STEALTH -->
+    <tr>
+      <td><span class="cmd">patch covers</span></td>
+      <td><span class="cat">Stealth</span></td>
+      <td><span class="perm perm-user">user</span></td>
+      <td><span class="noise-val">−15</span></td>
+      <td><span class="noise-val">+5</span></td>
+      <td>Not on cooldown (60s cooldown)</td>
+      <td>Sanitizes logs; reduces noise by 15</td>
+    </tr>
+    <tr>
+      <td><span class="cmd">kill patrol</span></td>
+      <td><span class="cat">Stealth</span></td>
+      <td><span class="perm perm-admin">admin</span></td>
+      <td><span class="noise-val">+5</span></td>
+      <td><span class="noise-val">+10</span></td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Kills all defense mobs within 32 blocks</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="warning">
+  <div class="note-title">Defense Counter-Play</div>
+  Exploits can be <strong>auto-patched</strong> by the defense system when noise reaches ALERT (50+). If you exploit the firewall and then trigger ALERT, the IR team patches it — your exploit becomes useless. Players must manage noise carefully or use stealth commands to stay below thresholds.
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  03 — PERMISSION TREE                                                   -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="permission-tree">
+  <div class="num">03</div>
+  <h2>Permission Escalation Tree</h2>
+  <span class="tag">4 Levels</span>
+</div>
+
+<p class="desc">Permissions are escalated through specific commands, each requiring a puzzle reward as a prerequisite. Permissions can be <em>revoked</em> by the defense system during breach or lockdown events — players may need to re-earn credentials.</p>
+
+<div class="perm-tree">
+  <div class="perm-node">
+    <div class="perm-line"></div>
+    <div class="perm-node-inner">
+      <div class="perm-circle circle-guest">GUEST</div>
+      <div class="perm-details">
+        <h4>Guest — Anonymous Session</h4>
+        <p>Starting permission. Can run recon commands (scan, ls, cat, whoami, help). Cannot access restricted areas or run exploit commands.</p>
+        <div class="unlocks">→ Unlocks: scan, ls, cat, whoami, help, login (when credential found)</div>
+      </div>
+    </div>
+  </div>
+  <div class="perm-node">
+    <div class="perm-line"></div>
+    <div class="perm-node-inner">
+      <div class="perm-circle circle-user">USER</div>
+      <div class="perm-details">
+        <h4>User — Authenticated Local User</h4>
+        <p>Gained via <code>login</code> command after finding the credential chest. Unlocks exploit commands and stealth operations. Can attempt firewall bypass.</p>
+        <div class="unlocks">→ Unlocks: exploit firewall, exploit ids, patch covers, sudo</div>
+      </div>
+    </div>
+  </div>
+  <div class="perm-node">
+    <div class="perm-line"></div>
+    <div class="perm-node-inner">
+      <div class="perm-circle circle-admin">ADMIN</div>
+      <div class="perm-details">
+        <h4>Admin — Privileged User</h4>
+        <p>Gained via <code>sudo</code> after cracking the password hash in the Nether. Grants access to encryption exploits and the kill command. Required to enter the End.</p>
+        <div class="unlocks">→ Unlocks: exploit encryption, kill patrol, exploit root (when armed)</div>
+      </div>
+    </div>
+  </div>
+  <div class="perm-node">
+    <div class="perm-node-inner">
+      <div class="perm-circle circle-root">ROOT</div>
+      <div class="perm-details">
+        <h4>Root — Full System Access</h4>
+        <p>The win condition. Gained only by executing <code>exploit root</code> in the System Core with the root exploit armed. Ends the game: defenses stop, system shuts down.</p>
+        <div class="unlocks">→ Game Over (Victory): all defenses disabled, victory sequence plays</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  04 — NOISE MODEL                                                       -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="noise-model">
+  <div class="num">04</div>
+  <h2>Noise &amp; Detection Model</h2>
+  <span class="tag">Stealth Mechanics</span>
+</div>
+
+<p class="desc">Noise is the game's stealth system. It ranges from 0 (completely silent) to 100 (full system lockdown). Noise accumulates from player actions and decays passively over time. Crossing thresholds triggers escalating defense responses.</p>
+
+<div class="noise-spectrum">
+  <div class="noise-seg seg-clean">Clean</div>
+  <div class="noise-seg seg-warning">Warn</div>
+  <div class="noise-seg seg-alert">Alert</div>
+  <div class="noise-seg seg-breach">Breach</div>
+  <div class="noise-seg seg-lockdown">Lock</div>
+</div>
+<div class="noise-labels">
+  <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+</div>
+
+<div class="table-wrap" style="margin-top:24px">
+<table>
+  <thead>
+    <tr>
+      <th>Threshold</th>
+      <th>Range</th>
+      <th>Immediate Response</th>
+      <th>Ongoing Effect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="color:#7cfc00;font-weight:600">CLEAN</td>
+      <td><span class="noise-val">0–24</span></td>
+      <td>—</td>
+      <td>No defenses active. Normal gameplay.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--yellow);font-weight:600">WARNING</td>
+      <td><span class="noise-val">25–49</span></td>
+      <td>3 patrol mobs spawn near player</td>
+      <td>Periodic patrol spawns every 40s. Terminal works normally.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--orange);font-weight:600">ALERT</td>
+      <td><span class="noise-val">50–74</span></td>
+      <td>6 mobs spawn. Firewall exploit auto-patched. Terminal locked 10s.</td>
+      <td>Patrol every 20s. Noise decay slowed 50%. IR team active.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--red);font-weight:600">BREACH</td>
+      <td><span class="noise-val">75–99</span></td>
+      <td>12 mobs spawn. Permission revoked → guest. Terminal locked 30s. Player teleported to Overworld.</td>
+      <td>Patrol every 10s. Player must reduce noise below 50 to recover.</td>
+    </tr>
+    <tr>
+      <td style="color:#ff4444;font-weight:600">LOCKDOWN</td>
+      <td><span class="noise-val">100</span></td>
+      <td>20 mobs spawn. All terminals locked 60s. Noise frozen (no decay). All permissions revoked.</td>
+      <td>Near game-over. Player must wait for lockdown to expire, then manually reduce noise.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card" style="margin-top:24px">
+  <div class="card-header">
+    <div class="icon green-icon">📊</div>
+    <h3>Noise Sources &amp; Costs</h3>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Noise Added</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Failed terminal command</td><td><span class="noise-val">+8–15</span></td><td>Scales with command severity</td></tr>
+        <tr><td>Successful exploit</td><td><span class="noise-val">+10–25</span></td><td>Exploits leave traces even on success</td></tr>
+        <tr><td>Failed login / sudo</td><td><span class="noise-val">+10–15</span></td><td>IDS flags failed auth attempts</td></tr>
+        <tr><td>Combat (hitting a mob)</td><td><span class="noise-val">+3</span></td><td>Per hit dealt to defense mobs</td></tr>
+        <tr><td>Breaking server_hardware blocks</td><td><span class="noise-val">+5</span></td><td>Physical tampering detected</td></tr>
+        <tr><td>Sprinting</td><td><span class="noise-val">+0.5/tick</span></td><td>Suspicious movement pattern</td></tr>
+        <tr><td>Unauthorized area access</td><td><span class="noise-val">+8</span></td><td>Attempting to enter a locked dimension</td></tr>
+        <tr><td>Unknown command entered</td><td><span class="noise-val">+3</span></td><td>Probing / fuzzing detected</td></tr>
+        <tr><td><code>patch covers</code></td><td><span class="noise-val">−15</span></td><td>Active noise reduction (60s cooldown)</td></tr>
+        <tr><td>Puzzle completion</td><td><span class="noise-val">−3</span></td><td>Small reward for stealth approach</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  05 — TERMINAL FLOW                                                     -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="terminal-flow">
+  <div class="num">05</div>
+  <h2>Terminal UI Flow</h2>
+  <span class="tag">Player Interface</span>
+</div>
+
+<p class="desc">The terminal is implemented using Bedrock's ActionForm and ModalForm APIs. It simulates a real terminal experience through creative text formatting within Bedrock's UI constraints.</p>
+
+<div class="terminal">
+  <div class="terminal-bar">
+    <div class="terminal-dot dot-red"></div>
+    <div class="terminal-dot dot-yel"></div>
+    <div class="terminal-dot dot-grn"></div>
+    <span class="terminal-title">Main Menu — NULLBYTE Terminal v2.7.1</span>
+  </div>
+  <div class="terminal-body">
+<span class="dim">  [PERM: GUEST ] [NOISE: ░░░░░░░░░░ 0%] [THREAT: CLEAN]</span>
+
+<span class="dim">═══════════════════════════════════════</span>
+<span class="white">  SYSTEM INTERFACE v2.7.1</span>
+<span class="dim">═══════════════════════════════════════</span>
+
+  <span class="dim">[No recent activity]</span>
+
+<span class="dim">═══════════════════════════════════════</span>
+<span class="white">  SELECT OPTION:</span>
+<span class="dim">═══════════════════════════════════════</span>
+
+  <span class="cyan">[ EXECUTE COMMAND ]</span>   ← opens command entry
+  <span class="cyan">[ SYSTEM STATUS   ]</span>   ← detailed system view
+  <span class="cyan">[ RECENT LOG      ]</span>   ← scrollable activity log
+  <span class="cyan">[ HELP            ]</span>   ← auto-runs 'help'
+  <span class="cyan">[ CLOSE TERMINAL  ]</span>   ← exits UI</div>
+</div>
+
+<div class="terminal">
+  <div class="terminal-bar">
+    <div class="terminal-dot dot-red"></div>
+    <div class="terminal-dot dot-yel"></div>
+    <div class="terminal-dot dot-grn"></div>
+    <span class="terminal-title">Command Entry Modal</span>
+  </div>
+  <div class="terminal-body">
+<span class="white">Select a command from the list, or type manually:</span>
+
+<span class="dim">Quick Select:</span>
+  <span class="muted">[▼] scan</span>
+  <span class="muted">    ls</span>
+  <span class="muted">    cat /var/log/auth.log</span>
+  <span class="muted">    cat /etc/config</span>
+  <span class="muted">    whoami</span>
+  <span class="muted">    help</span>
+  <span class="muted">    login</span>
+
+<span class="dim">Manual Command Entry:</span>
+  <span class="prompt">_ </span><span class="dim">(type here)</span>
+
+  <span class="cyan">[ EXECUTE ]</span></div>
+</div>
+
+<div class="terminal">
+  <div class="terminal-bar">
+    <div class="terminal-dot dot-red"></div>
+    <div class="terminal-dot dot-yel"></div>
+    <div class="terminal-dot dot-grn"></div>
+    <span class="terminal-title">Command Output — scan</span>
+  </div>
+  <div class="terminal-body">
+<span class="dim">> scan</span>
+<span class="dim">───────────────────────────────────────</span>
+Scanning local system...
+Interfaces: eth0 [UP], lo [UP]
+Services: sshd (22), httpd (80), mysqld (3306)
+Open ports: 22, 80, 443, 3306
+<span class="cyan">[+] Scan complete. Use 'ls' to enumerate directories.</span>
+<span class="dim">
+───────────────────────────────────────</span>
+<span class="cyan">[+] Success</span> | Noise: +2 | Threat: CLEAN
+
+  <span class="cyan">[ BACK TO MENU ]  [ RUN ANOTHER ]  [ CLOSE ]</span></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  06 — EXPLOIT CHAIN                                                     -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="exploit-chain">
+  <div class="num">06</div>
+  <h2>Full Exploit Chain</h2>
+  <span class="tag">Complete Playthrough Path</span>
+</div>
+
+<p class="desc">This is one complete path from guest to root. Players may discover steps in different orders or take alternate routes (e.g., disabling IDS before exploiting the firewall for less noise penalty).</p>
+
+<div class="exploit-chain">
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--purple-dim);color:var(--purple)">1</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Reconnaissance</h4>
+      <p>Run <span class="cmd-inline">scan</span>, <span class="cmd-inline">ls</span>, <span class="cmd-inline">cat /var/log/auth.log</span>, and <span class="cmd-inline">cat /etc/config</span> to enumerate the system. Learn about the firewall, IDS, encryption, and hints about where credentials are stored. <em>Noise cost: ~5 total.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--purple-dim);color:var(--purple)">2</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Credential Harvesting</h4>
+      <p>Navigate the Overworld to find the <strong>credential chest</strong> (tagged <code>nullbyte:credential_chest</code>). Opening it sets the <code>hasCredential</code> flag. Also locate the <strong>IDS bypass chest</strong> and the <strong>log analysis sign</strong> to collect the exploit token and IDS bypass module. <em>Noise cost: 0 (puzzle completion rewards −3 noise each).</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--cyan-dim);color:var(--cyan)">3</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Authentication — <span class="cmd-inline">login</span></h4>
+      <p>With the credential flag set, run <span class="cmd-inline">login</span>. Permission escalates from <strong>guest → user</strong>. The login command becomes available and auto-succeeds because the precondition is met. <em>Noise: +3. Total: ~8.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--cyan-dim);color:var(--cyan)">4</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Disable IDS (Optional but Recommended) — <span class="cmd-inline">exploit ids</span></h4>
+      <p>If the player collected the IDS bypass module, they can run <span class="cmd-inline">exploit ids</span> <em>before</em> exploiting the firewall. This doubles the passive noise decay rate, giving much more breathing room. Smart players do this first. <em>Noise: +12. Total: ~20.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">5</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Firewall Bypass — <span class="cmd-inline">exploit firewall</span></h4>
+      <p>With the exploit token and firewall not yet patched, run <span class="cmd-inline">exploit firewall</span>. This sets the <code>firewallBypassed</code> flag and unlocks the Nether area. <strong>Warning:</strong> if noise reaches 50+ while the firewall is bypassed, the defense system auto-patches it. <em>Noise: +15. Total: ~35.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">6</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Navigate to Nether — Restricted Services</h4>
+      <p>With the Nether unlocked, travel through the Nether portal. Find the <strong>sudo puzzle</strong> (a redstone circuit representing a password hash cracking challenge) and the <strong>compromised server NPC</strong>. Solve the redstone puzzle to earn the sudo password. <em>Noise: 0 from puzzles.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">7</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Privilege Escalation — <span class="cmd-inline">sudo</span></h4>
+      <p>Back at a terminal, run <span class="cmd-inline">sudo</span>. With the sudo password flag set, permission escalates from <strong>user → admin</strong>. This unlocks <span class="cmd-inline">exploit encryption</span>, <span class="cmd-inline">kill patrol</span>, and the path to the End. <em>Noise: +8. Total: ~43.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--red-dim);color:var(--red)">8</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Lateral Movement &amp; End Access</h4>
+      <p>Interact with the compromised server NPC (requires <code>hasSudoPassword</code> flag) to complete lateral movement. Navigate to the End portal. Find the <strong>encryption key chest</strong> in the System Core. <em>Noise: 0 from puzzles.</em></p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--red-dim);color:var(--red)">9</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Break Encryption — <span class="cmd-inline">exploit encryption</span></h4>
+      <p>With the encryption key found, run <span class="cmd-inline">exploit encryption</span>. This breaks the core encryption and arms the root exploit (sets <code>rootExploitReady</code>). <em>Noise: +20. Total: ~63.</em> Use <span class="cmd-inline">patch covers</span> here if noise is getting high.</p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--red-dim);color:var(--red)">10</div>
+    </div>
+    <div class="chain-content" style="border-color:var(--green);background:rgba(0,255,136,0.05)">
+      <h4 style="color:var(--green)">⭐ Execute Root Exploit — <span class="cmd-inline">exploit root</span></h4>
+      <p>From within the End dimension, with the root exploit armed, execute <span class="cmd-inline">exploit root</span>. Permission escalates to <strong>root</strong>. The system shuts down. All defenses stop. Victory. <em>Noise: +50 — but it doesn't matter. Game over (win).</em></p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  07 — BIOME PUZZLES                                                     -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="biome-puzzles">
+  <div class="num">07</div>
+  <h2>Puzzles by Biome</h2>
+  <span class="tag">8 Puzzles Across 3 Areas</span>
+</div>
+
+<p class="desc">Each area contains puzzles that teach a specific cybersecurity concept. Puzzles are detected via tagged blocks and grant flags that unlock progression. The map should be designed so players naturally discover puzzles through exploration.</p>
+
+<div class="biome-grid">
+  <!-- OVERWORLD -->
+  <div class="biome-card biome-overworld">
+    <div class="biome-header">
+      <span style="font-size:22px">🌿</span>
+      <h3>Overworld</h3>
+      <span class="area-badge">USER SPACE</span>
+    </div>
+    <div class="puzzle-list">
+      <div class="puzzle-item">
+        <span class="puzzle-num">1</span>
+        <div>
+          <h5>Credential Chest</h5>
+          <p>Find and open the backup storage chest containing default system credentials. Located in a "server room" build.</p>
+          <div class="reward">→ Grants: hasCredential (unlocks login)</div>
+          <div class="concept">Concept: Credential Harvesting / Default Passwords</div>
+        </div>
+      </div>
+      <div class="puzzle-item">
+        <span class="puzzle-num">2</span>
+        <div>
+          <h5>Log Analysis Sign</h5>
+          <p>Read a sign in the "security office" area that reveals where exploit source code was hidden by a rogue developer. Requires credentials first (simulates needing access to read logs).</p>
+          <div class="reward">→ Grants: hasExploitToken (unlocks exploit firewall)</div>
+          <div class="concept">Concept: Log Analysis / Insider Threat</div>
+        </div>
+      </div>
+      <div class="puzzle-item">
+        <span class="puzzle-num">3</span>
+        <div>
+          <h5>IDS Bypass Chest</h5>
+          <p>A hardware lab contains a locked cabinet with an IDS bypass chip left by a compromised developer. Players who find this can disable the Intrusion Detection System.</p>
+          <div class="reward">→ Grants: hasIDSBypass (unlocks exploit ids)</div>
+          <div class="concept">Concept: Supply Chain Attack / Insider Threat</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NETHER -->
+  <div class="biome-card biome-nether">
+    <div class="biome-header">
+      <span style="font-size:22px">🔥</span>
+      <h3>Nether</h3>
+      <span class="area-badge">RESTRICTED SERVICES</span>
+    </div>
+    <div class="puzzle-list">
+      <div class="puzzle-item">
+        <span class="puzzle-num">4</span>
+        <div>
+          <h5>Password Hash Crack</h5>
+          <p>A redstone puzzle representing a password cracking challenge. Players must activate the correct sequence of levers (representing hash iterations) to "crack" the admin password. Located near a compromised admin workstation build.</p>
+          <div class="reward">→ Grants: hasSudoPassword (unlocks sudo)</div>
+          <div class="concept">Concept: Password Cracking / Hash Analysis</div>
+        </div>
+      </div>
+      <div class="puzzle-item">
+        <span class="puzzle-num">5</span>
+        <div>
+          <h5>Compromised Server</h5>
+          <p>An NPC representing a compromised internal server. Players with admin credentials can interact with it to complete "lateral movement" — pivoting from one compromised machine to the next.</p>
+          <div class="reward">→ Grants: hasServerAccess (unlocks End area)</div>
+          <div class="concept">Concept: Lateral Movement / Pivoting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- END -->
+  <div class="biome-card biome-end">
+    <div class="biome-header">
+      <span style="font-size:22px">💜</span>
+      <h3>The End</h3>
+      <span class="area-badge">SYSTEM CORE</span>
+    </div>
+    <div class="puzzle-list">
+      <div class="puzzle-item">
+        <span class="puzzle-num">6</span>
+        <div>
+          <h5>Encryption Key Vault</h5>
+          <p>A "cold storage" chest in an isolated area of the End. Contains the encryption key needed to break the core encryption layer. The vault is physically separated from the main area to encourage careful navigation.</p>
+          <div class="reward">→ Grants: encryptionKeyFound (unlocks exploit encryption)</div>
+          <div class="concept">Concept: Key Management / Cold Storage</div>
+        </div>
+      </div>
+      <div class="puzzle-item">
+        <span class="puzzle-num">7</span>
+        <div>
+          <h5>Master Control Panel</h5>
+          <p>A redstone activation target representing the final system lock. Players must activate it after breaking encryption to gain full access to the system core terminal.</p>
+          <div class="reward">→ Grants: coreAccessGranted (enables final terminal)</div>
+          <div class="concept">Concept: Physical Access / Root Access</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <div class="note-title">Map Design Suggestions</div>
+  Each area should have a distinct visual identity reinforcing its role: the Overworld should feel like a corporate office/server room, the Nether like a hot datacenter with visible infrastructure, and the End like an isolated cold vault. Terminal blocks (tagged <code>nullbyte:terminal</code>) should be placed at key waypoints. Defense mob spawn points should be tagged in the map so the script can summon near them rather than using random offsets. Signs and chest placements correspond to the trigger tags defined in PuzzleManager.
+</div>
+
+</div><!-- /wrapper -->
+
+</body>
+</html>

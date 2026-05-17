@@ -1,0 +1,19 @@
+{
+  "name": "nullbyte-behavior-pack",
+  "version": "1.0.0",
+  "description": "NullByte — HEXCORE cybersecurity evaluation platform for Minecraft Bedrock",
+  "private": true,
+  "scripts": {
+    "build": "tsc --build",
+    "watch": "tsc --build --watch",
+    "mcaddon": "npx just-scripts mcaddon",
+    "lint": "npx just-scripts lint"
+  },
+  "devDependencies": {
+    "@minecraft/server": "^2.7.0",
+    "@minecraft/server-ui": "^2.0.0",
+    "@minecraft/core-build-tasks": "^1.0.0",
+    "typescript": "^5.4.0",
+    "just-scripts": "^2.3.0"
+  }
+}
