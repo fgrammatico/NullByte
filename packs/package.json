@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc --build",
     "watch": "tsc --build --watch",
-    "mcaddon": "npx just-scripts mcaddon",
+    "mcaddon": "cd .. && zip -r packs/NullByte.mcaddon packs/behavior_pack packs/resource_pack && echo 'Built: packs/NullByte.mcaddon'",
     "lint": "npx just-scripts lint"
   },
   "devDependencies": {

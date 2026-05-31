@@ -38,13 +38,13 @@ const ALL_OBJECTIVES = Object.values(OBJ);
 // ---------------------------------------------------------------------------
 
 const BOUNDARY = {
-  minX: -256, // TODO: replace with actual boundary after build
-  maxX:  256,
-  minZ: -256,
-  maxZ:  256,
-  spawnX:    0, // TODO: replace with lobby spawn point
-  spawnY:   64,
-  spawnZ:    0,
+  minX: 867,
+  maxX:  1253,
+  minZ: 308,
+  maxZ:  615,
+  spawnX:    982,
+  spawnY:   68,
+  spawnZ:    396,
 };
 
 // ---------------------------------------------------------------------------
