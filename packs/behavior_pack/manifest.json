@@ -1,29 +1,39 @@
 {
   "format_version": 2,
   "header": {
-    "name": "NullByte",
-    "description": "HEXCORE Cybersecurity Challenge",
+    "name": "NullByte Behavior v0.0.23",
+    "description": "HEXCORE Evaluation Platform v0.0.23 (Behavior Pack)",
     "uuid": "8e584b65-0fec-485a-85df-29fdc902081c",
-    "version": [1, 0, 0],
-    "min_engine_version": [1, 21, 0]
+    "pack_scope": "world",
+    "version": [0, 0, 23],
+    "min_engine_version": [1, 21, 120]
   },
   "modules": [
+    {
+      "type": "data",
+      "uuid": "d7b8f5af-c8f0-41ff-a299-8dc1f4e5038b",
+      "version": [0, 0, 23]
+    },
     {
       "type": "script",
       "language": "javascript",
       "uuid": "995fe487-eabe-4684-8229-3e05c6298f5c",
       "entry": "scripts/main.js",
-      "version": [1, 0, 0]
+      "version": [0, 0, 23]
     }
   ],
+  "metadata": {
+    "product_type": "addon",
+    "authors": ["NullByte"]
+  },
   "dependencies": [
     {
       "module_name": "@minecraft/server",
-      "version": "2.7.0"
+      "version": "2.1.0"
     },
     {
-      "module_name": "@minecraft/server-ui",
-      "version": "2.0.0"
+      "uuid": "e41e77fd-03bf-4cb1-9437-2418792fe66d",
+      "version": [0, 0, 23]
     }
   ]
 }

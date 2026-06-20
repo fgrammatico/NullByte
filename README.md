@@ -42,6 +42,8 @@ Physical puzzle gates are built from redstone and command blocks, which feed sta
 ## Repository structure
 
 ```
+IMPLEMENTATION_ROADMAP.md — phase status and world build order
+PUZZLE_BUILD_PLAN.md       — per-puzzle build instructions
 story/           — world narrative and lore
   narrative.md   — full story and characters
   lore/          — NPC dialogue and in-world sign texts
@@ -51,7 +53,7 @@ map/             — zone descriptions
   nether/
   end/
 docs/            — developer reference
-  minecraft_concepts.md
+  mechanics.html — full command table, noise model, puzzle map
 packs/           — behavior pack source (TypeScript)
   src/main.ts    — all game logic
   behavior_pack/ — pack assets (manifest, dialogue)
@@ -67,16 +69,15 @@ Build guides, puzzle solutions, and the scoring rubric are maintained privately 
 
 - Minecraft Bedrock Edition (Realm)
 - `@minecraft/server` v2.7.0 (Bedrock Script API)
-- `@minecraft/server-ui` v2.0.0
 - TypeScript 5 compiled to ES2020
 
 ---
 
 ## Setup
 
-See `docs/minecraft_concepts.md` for a primer on Bedrock concepts.
+See `IMPLEMENTATION_ROADMAP.md` for the full phase-by-phase build status.
 
-See `private/implementation_plan.md` for the full phase-by-phase build guide (not tracked in git).
+See `PUZZLE_BUILD_PLAN.md` for per-puzzle build instructions, materials, and command block setups.
 
 To build and package the behavior pack:
 
