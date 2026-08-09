@@ -1,8 +1,8 @@
 # NullByte
 
-A cybersecurity challenge built inside a Minecraft Bedrock Realm.
+A cybersecurity challenge built as a locally hosted Minecraft Bedrock world.
 
-Players receive a Realm invite and are told to complete the session. No further instructions are given.
+The host installs the custom behavior and resource packs, opens the world to local multiplayer, and starts the session.
 
 ---
 
@@ -16,16 +16,16 @@ The experience is self-contained. No external systems are involved.
 
 ## How it works
 
-The world runs a custom behavior pack built with the Bedrock Script API (`@minecraft/server`). The pack handles:
+The world runs a custom behavior pack built with the Bedrock Script API (`@minecraft/server`). The local host loads the packs. Realm deployment is not supported. The behavior pack handles:
 
-- Custom terminal commands (e.g., `/nb:scan`, `/nb:login`, `/nb:sudo`)
-- A per-player noise meter that tracks network activity and triggers countermeasures
+- A portable in-game terminal
+- One shared noise meter that triggers world-wide countermeasures
 - Game state via the Minecraft scoreboard system
 - NPC dialogue for in-world characters
 - Player boundary enforcement
 - Adventure mode enforcement on join
 
-Physical puzzle gates are built from redstone and command blocks, which feed state into the scoreboard. The scripted layer reads that state to unlock commands and dialogue.
+Physical puzzle gates use redstone and command blocks. Progression, permission, noise, defenses, and victory are shared. Players can join, leave, die, or rejoin without resetting completed discoveries.
 
 ---
 
@@ -42,32 +42,26 @@ Physical puzzle gates are built from redstone and command blocks, which feed sta
 ## Repository structure
 
 ```
-IMPLEMENTATION_ROADMAP.md — phase status and world build order
-PUZZLE_BUILD_PLAN.md       — per-puzzle build instructions
-story/           — world narrative and lore
-  narrative.md   — full story and characters
-  lore/          — NPC dialogue and in-world sign texts
-  puzzles/       — challenge overview (no solutions)
-map/             — zone descriptions
+story/           - spoiler-free narrative and lore overviews
+map/             - zone descriptions
   overworld/
   nether/
   end/
-docs/            — developer reference
-  mechanics.html — full command table, noise model, puzzle map
-packs/           — behavior pack source (TypeScript)
-  src/main.ts    — all game logic
-  behavior_pack/ — pack assets (manifest, dialogue)
-  resource_pack/ — resource pack (minimal)
-scoring/         — evaluation overview
+packs/           - public behavior and resource pack structure
+  src/           - TypeScript runtime and release-config example
+  behavior_pack/ - behavior-pack manifest and public assets
+  resource_pack/ - resource-pack manifest and public assets
+release-inputs/  - tracked runtime, dialogue, and source-world release inputs
+scoring/         - evaluation overview
 ```
 
-Build guides, puzzle solutions, and the scoring rubric are maintained privately and are not included in this repository.
+Builder plans and scoring details remain private. Runtime configuration, packaged dialogue, and the source world are tracked because GitHub-hosted release jobs require them.
 
 ---
 
 ## Tech stack
 
-- Minecraft Bedrock Edition (Realm)
+- Minecraft Bedrock Edition with a locally hosted world
 - `@minecraft/server` v2.7.0 (Bedrock Script API)
 - TypeScript 5 compiled to ES2020
 
@@ -75,20 +69,11 @@ Build guides, puzzle solutions, and the scoring rubric are maintained privately 
 
 ## Setup
 
-See `IMPLEMENTATION_ROADMAP.md` for the full phase-by-phase build status.
+Download the release ZIP and follow [INSTALLATION.md](INSTALLATION.md). The host must obtain the commercial packs listed in [THIRD_PARTY_REQUIREMENTS.md](THIRD_PARTY_REQUIREMENTS.md) separately.
 
-See `PUZZLE_BUILD_PLAN.md` for per-puzzle build instructions, materials, and command block setups.
+Merged pull requests can publish a release when their commits contain `[patch]`, `[minor]`, `[major]`, or `[breaking]`. The highest marker since the previous release tag sets the next version. Commits without a marker do not publish a release.
 
-To build and package the behavior pack:
-
-```bash
-cd packs
-npm install
-npm run build
-npm run mcaddon
-```
-
-Upload the generated `.mcaddon` to the Realm via Settings → Manage Realm → Behavior Packs.
+Published changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

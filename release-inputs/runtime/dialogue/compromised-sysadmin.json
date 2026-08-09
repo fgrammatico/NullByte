@@ -1,0 +1,44 @@
+{
+  "format_version": "1.17",
+  "minecraft:npc_dialogue": {
+    "scenes": [
+      {
+        "scene_tag": "dr4k3_locked",
+        "npc_name": "DR4K3 | Sys. Admin",
+        "text": "The network showed an alert.\n\nState your ticket, target host, maintenance window, and approver.\n\nNo record, no route.",
+        "buttons": []
+      },
+      {
+        "scene_tag": "dr4k3_request",
+        "npc_name": "DR4K3 | Sys. Admin",
+        "text": "The route is restricted. Submit the maintenance request exactly as recorded.",
+        "buttons": [
+          {
+            "name": "Ticket 4471. ETH2-GW. 04:30. ZERO approved.",
+            "commands": [
+              "/scoreboard players set NB_GLOBAL nb_p02 1"
+            ]
+          },
+          {
+            "name": "Ticket 4174. ETH1-GW. 03:40.",
+            "commands": [
+              "/scoreboard players add NB_GLOBAL nb_noise 6"
+            ]
+          },
+          {
+            "name": "Emergency IT request. Open it now.",
+            "commands": [
+              "/scoreboard players add NB_GLOBAL nb_noise 6"
+            ]
+          }
+        ]
+      },
+      {
+        "scene_tag": "dr4k3_done",
+        "npc_name": "DR4K3 | Sys. Admin",
+        "text": "Ticket, host, and window match.\n\nThe eth2 route is already open. Finish the job before SENTINEL closes something else.",
+        "buttons": []
+      }
+    ]
+  }
+}

@@ -1,41 +1,44 @@
 # Workspace release rules (NullByte)
 
-These rules are mandatory for every change in this workspace that results in a new `.mcaddon` build.
+These rules apply to every change that generates a new NullByte `.mcaddon` or GitHub release.
 
-## Version bump rule
+## Version selection
 
-- Always bump patch version in all files before generating a new `.mcaddon`.
-- Required files:
-  - `packs/package.json`
-  - `packs/behavior_pack/manifest.json`
-  - `packs/resource_pack/manifest.json`
-- Keep terminal banner version in sync in:
-  - `packs/src/main.ts` (`HEXCORE TERMINAL vX.Y.Z`)
+- Merged pull requests release only when at least one commit subject or body contains a case-insensitive bracket marker:
+  - `[patch]`
+  - `[minor]`
+  - `[major]`
+  - `[breaking]`, which is an alias for major
+- Scan every commit since the latest release tag.
+- Use the highest marker found: major or breaking, then minor, then patch.
+- Do not publish a release when no marker is present.
+- The first automated run may publish the approved baseline `v0.0.24` when that tag does not exist and all source versions are `0.0.24`.
 
-## Mandatory command block rule
+## Version synchronization
 
-For every release/build response, always provide these 3 commands in this exact order.
+Set the selected semantic version in all of these files before packaging:
 
-1) Source version verification
+- `packs/package.json`
+- `packs/package-lock.json`
+- `packs/behavior_pack/manifest.json`
+- `packs/resource_pack/manifest.json`
+- `packs/src/main.ts` (`HEXCORE TERMINAL vX.Y.Z`)
+- `index.html` (`HEXCORE PORTABLE TERMINAL vX.Y.Z`)
 
-```bash
-cd /home/user23/GitHub/FG/NullByte/packs && grep -n "\"version\": \"<NEW_VERSION>\"" package.json && grep -n "v<NEW_VERSION>\\|\\[<MAJOR>, <MINOR>, <PATCH>\\]" behavior_pack/manifest.json resource_pack/manifest.json && grep -n "HEXCORE TERMINAL v<NEW_VERSION>" src/main.ts
-```
+The behavior-pack dependency on the NullByte resource pack must use the same version. Never generate a new `.mcaddon` while these values differ.
 
-2) Build and package
+## Release package
 
-```bash
-cd /home/user23/GitHub/FG/NullByte/packs && npm run build && rm -f NullByte.mcaddon && npm run mcaddon
-```
+- Build both `packs/behavior_pack/` and `packs/resource_pack/` into the versioned `.mcaddon`.
+- Require exactly one `release-inputs/world/NullByte *.mcworld` source file.
+- Patch only the packaged world copy with the NullByte behavior and resource pack IDs and selected version.
+- Do not change the committed source world during packaging.
+- Do not bundle Security Sandbox or Ultimate Blasters. Document their required versions instead.
+- Publish one versioned ZIP containing the approved player documents, `.mcaddon`, and dated `.mcworld`.
 
-3) Built archive verification
+## Validation
 
-```bash
-cd /home/user23/GitHub/FG/NullByte/packs && unzip -p NullByte.mcaddon behavior_pack/manifest.json | grep -n "v<NEW_VERSION>\\|\\[<MAJOR>, <MINOR>, <PATCH>\\]" && unzip -p NullByte.mcaddon resource_pack/manifest.json | grep -n "v<NEW_VERSION>\\|\\[<MAJOR>, <MINOR>, <PATCH>\\]"
-```
-
-## Response style enforcement
-
-- Always include the 3 commands above after any version bump.
-- Never skip version bump if a new `.mcaddon` is generated.
-- Never leave versions inconsistent across files.
+- Run the release tests and TypeScript build before publishing.
+- Verify version values in both manifests inside the generated `.mcaddon`.
+- Verify both NullByte pack references in the generated `.mcworld`.
+- Verify the final ZIP entry list before reporting completion.

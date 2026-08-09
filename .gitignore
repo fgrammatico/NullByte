@@ -207,16 +207,15 @@ marimo/_lsp/
 __marimo__/
 
 # Custom ignore rules
-NULLBYTE_PROMPT_INSTRUCTIONS.md
 
-# Private data — never push
-private/
 
 # Node.js / TypeScript build artifacts
 node_modules/
 packs/node_modules/
 packs/behavior_pack/scripts/
+*.tsbuildinfo
 *.mcaddon
+release-output/
 
 # Behavior pack local environment
 packs/.env

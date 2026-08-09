@@ -235,6 +235,8 @@
   .terminal-body .dim    { color: var(--text-dim); }
   .terminal-body .muted  { color: var(--text-muted); }
   .terminal-body .cyan   { color: var(--cyan); }
+  .terminal-body .red    { color: var(--red); }
+  .terminal-body .yellow { color: var(--yellow); }
   .terminal-body .white  { color: var(--text-primary); }
 
   /* ── Area Grid ── */
@@ -407,7 +409,7 @@
   <span class="tag">Context</span>
 </div>
 
-<p class="desc">NullByte is a hacker-themed Minecraft Bedrock adventure running on a multiplayer Realm. The world simulates a corporate network breach, every area, puzzle, and mechanic maps to a real cybersecurity concept.</p>
+<p class="desc">NullByte is a hacker-themed Minecraft Bedrock adventure running in a locally hosted world with custom behavior and resource packs. The world simulates a corporate network breach, and every area, puzzle, and mechanic maps to a cybersecurity concept.</p>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;margin:20px 0">
   <div class="card">
@@ -422,14 +424,14 @@
       <div class="icon cyan-icon">🤝</div>
       <h3>Multiplayer</h3>
     </div>
-    <p>Multiple players can progress simultaneously. Everyone tracks their own permission level and noise score. Coordinate or compete, the world is always on.</p>
+    <p>One or more players can investigate the same world. Puzzle discoveries, permission, noise, defenses, and victory are shared. Players may join, leave, or die without resetting progress.</p>
   </div>
   <div class="card">
     <div class="card-header">
       <div class="icon purple-icon">🔐</div>
       <h3>Real Concepts</h3>
     </div>
-    <p>Every puzzle teaches a real security concept: credential harvesting, log analysis, lateral movement, password cracking, firewall bypass, and more. No prior knowledge required.</p>
+    <p>Every puzzle teaches a security concept: credential handling, log analysis, lateral movement, access-code decoding, firewall rules, and more. No prior knowledge required.</p>
   </div>
 </div>
 
@@ -472,21 +474,21 @@
       <span class="area-badge">SYSTEM CORE</span>
     </div>
     <div class="area-body">
-      <p>The isolated heart of HEXCORE's network. Cold storage. The final encryption layer. This is where the root exploit runs. Full admin credentials required.</p>
+      <p>The isolated heart of HEXCORE's network. Cold storage. The final encryption layer. This is where the root exploit runs. Shared admin permission required.</p>
     </div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════════════ -->
-<!--  03 — YOUR PERMISSIONS                                                   -->
+<!--  03 — SHARED PERMISSION                                                   -->
 <!-- ════════════════════════════════════════════════════════════════════════ -->
 <div class="section-header" id="permissions">
   <div class="num">03</div>
-  <h2>Your Permissions</h2>
+  <h2>Shared Permission</h2>
   <span class="tag">4 Levels</span>
 </div>
 
-<p class="desc">Your permission level determines what commands you can run and which areas you can access. You start as an anonymous guest. Every escalation requires you to earn it.</p>
+<p class="desc">The world has one active permission level. It determines which commands are available and which areas can be accessed. Every player begins with the same guest session and observes each escalation.</p>
 
 <div class="perm-tree">
   <div class="perm-node">
@@ -515,7 +517,7 @@
       <div class="perm-circle circle-admin">ADMIN</div>
       <div class="perm-details">
         <h4>Admin — Privileged access</h4>
-        <p>Requires cracking the admin password in the Nether. Opens the path to the System Core.</p>
+        <p>Requires solving a privileged access-code challenge in the Nether. Enables higher-level terminal operations.</p>
       </div>
     </div>
   </div>
@@ -546,35 +548,36 @@
     <div class="terminal-dot dot-red"></div>
     <div class="terminal-dot dot-yel"></div>
     <div class="terminal-dot dot-grn"></div>
-    <span class="terminal-title">game chat — HEXCORE PORTABLE TERMINAL v2.7.1</span>
+    <span class="terminal-title">game chat — HEXCORE PORTABLE TERMINAL v0.0.24</span>
   </div>
   <div class="terminal-body">
 <span class="dim">  [PERM: GUEST] [NOISE: ░░░░░░░░░░ 0%] [THREAT: CLEAN]</span>
 
-<span class="muted">> /nb:help</span>
+<span class="muted">> /nb:menu</span>
 <span class="white">  Available commands:</span>
-  <span class="cyan">help  whoami  scan  status</span>
+  <span class="cyan">menu  whoami  status</span>
 <span class="dim">  [+] Noise: 0 | Threat: CLEAN</span>
 
 <span class="muted">> /nb:scan</span>
-  Scanning local system...
-  Services: sshd (22), httpd (80), mysqld (3306)
-<span class="cyan">  [+] Scan complete. Noise: +2</span>
+<span class="red">  [scan] Access denied. Credentials not discovered. Noise +4.</span>
 
 <span class="muted">> /nb:whoami</span>
-  Session: <span class="yellow">GUEST</span> | Noise: 2% | Threat: CLEAN
+  Shared role: <span class="yellow">GUEST</span>
 
-<span class="dim">  ── later, after solving a puzzle ──</span>
+<span class="dim">  ── Credential Vault completed ──</span>
+<span class="cyan">  [FLAG CAPTURED] Credentials unlocked. Noise -3.</span>
 
-<span class="muted">> /nb:help</span>
+<span class="muted">> /nb:menu</span>
 <span class="white">  Available commands:</span>
-  <span class="cyan">help  whoami  scan  status  login</span>
-<span class="dim">  [credential_found] New command unlocked: login</span></div>
+  <span class="cyan">menu  whoami  status  login  ls  cat  scan</span>
+
+<span class="muted">> /nb:login &lt;username&gt; &lt;password&gt;</span>
+<span class="cyan">  [login] Shared user session established. Noise increased.</span></div>
 </div>
 
 <div class="note">
   <div class="note-title">Action Bar</div>
-  Your permission level, noise score, and threat status are always visible in the action bar at the bottom of your screen, no command needed.
+  Shared noise and threat status are always visible in the action bar. Use <code>/nb:whoami</code> for permission and <code>/nb:status</code> for puzzle and alarm totals.
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════════════ -->
@@ -619,7 +622,7 @@
       <div class="icon orange-icon">🟠</div>
       <h3>Alert</h3>
     </div>
-    <p>Incident response is active, HEXCORE's security team is now reacting in real time. Defense systems lock down. Some of your progress may be rolled back.</p>
+    <p>Incident response is active, and HEXCORE's security team is reacting in real time. Defenses may lock the terminal, patch temporary access, or revoke the active permission level. Completed puzzle discoveries remain recorded.</p>
   </div>
   <div class="card">
     <div class="card-header">
@@ -651,13 +654,13 @@
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Open your hacking device</h4>
-      <p>Press <strong>T</strong> to open the chat (on mobile, tap the chat icon). Type <code>/nb:help</code> and hit Enter. That's your toolkit. The chat is your terminal, it's always with you.</p>
+      <p>Press <strong>T</strong> to open the chat (on mobile, tap the chat icon). Type <code>/nb:menu</code> and hit Enter. That's your toolkit. The chat is your terminal, and it is always with you.</p>
     </div>
   </div>
   <div class="step">
     <div class="step-num">2</div>
     <div class="step-body">
-      <h4>Read what <code>/nb:help</code> tells you</h4>
+      <h4>Read what <code>/nb:menu</code> tells you</h4>
       <p>It lists every command you can run right now. At the start that's just the basics. As you find things in the world, new commands appear here automatically.</p>
     </div>
   </div>
@@ -672,7 +675,7 @@
     <div class="step-num">4</div>
     <div class="step-body">
       <h4>Watch the bar at the bottom of your screen</h4>
-      <p>It shows your <strong>access level</strong> (what you're allowed to do), your <strong>noise score</strong> (how loud you've been), and your <strong>threat status</strong> (whether HEXCORE's security system has spotted you). If noise climbs, slow down.</p>
+      <p>It shows the shared <strong>noise score</strong> and <strong>threat status</strong>. Use <code>/nb:whoami</code> to check the active permission level. If noise climbs, slow down.</p>
     </div>
   </div>
   <div class="step">
@@ -686,7 +689,7 @@
 
 <div class="chips">
   <span class="chip">Minecraft Bedrock Edition</span>
-  <span class="chip">Realm, Multiplayer</span>
+  <span class="chip">Local Hosted Multiplayer</span>
   <span class="chip">Adventure Mode</span>
   <span class="chip">Behavior Pack Required</span>
 </div>
