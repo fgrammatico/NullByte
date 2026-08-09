@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nullbyte-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out merged main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packs/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packs
+        run: npm ci
+
+      - name: Run release tests
+        working-directory: packs
+        run: npm test
+
+      - name: Configure release commit identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Publish release
+        working-directory: packs
+        env:
+          BOOTSTRAP_VERSION: 0.0.24
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git rev-parse --verify --quiet "refs/tags/v${BOOTSTRAP_VERSION}"; then
+            npm run release
+          else
+            SOURCE_VERSION=$(node --print "require('./package.json').version")
+            if [[ "${SOURCE_VERSION}" != "${BOOTSTRAP_VERSION}" ]]; then
+              echo "Bootstrap requires source version ${BOOTSTRAP_VERSION}; found ${SOURCE_VERSION}." >&2
+              exit 1
+            fi
+            npm run release:prepare -- "${BOOTSTRAP_VERSION}"
+            gh release create "v${BOOTSTRAP_VERSION}" "../release-output/NullByte-v${BOOTSTRAP_VERSION}.zip" --target main --title "NullByte v${BOOTSTRAP_VERSION}" --notes-file ../CHANGELOG.md
+          fi

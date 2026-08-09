@@ -1,70 +1,25 @@
-# NPC Dialogue Scripts
-## DELTA — Compromised Server NPC
+# NPC Dialogue Overview
 
-DELTA speaks in fragmented, corrupted system messages.
-Dialogue is delivered via signs on the NPC's wall — different signs visible depending on which area the player has unlocked (builder places signs behind barriers that open as puzzles are solved).
+Exact dialogue choices and their game-state commands are private because they contain puzzle answers.
 
----
+## DR4K3
 
-### DELTA — before hash crack (Puzzle 04 not yet solved — door to this area is locked)
+DR4K3 controls a route into the System Core. The player must gather evidence before choosing a credible request. Unsupported or incomplete requests increase shared noise.
 
-Players cannot reach DELTA yet. The door from the hash crack room only opens when P04 is solved.
+The conversation has three states:
 
----
+1. route unavailable;
+2. evidence-based request selection; and
+3. route already opened.
 
-### DELTA — after hash crack, first visit
+## HR_BOT
 
-```
-...DELTA_SRV_04...
-...partial session established...
+HR_BOT introduces the shared-session rules in the lobby. Later scenes report that the evaluation is active or complete.
 
-[PIVOT ROUTE AVAILABLE]
-  Source: eth1 (this node)
-  Target: eth2 System Core
-  Method: relay insertion
-  Status: AWAITING CHIP
+## Authoring rules
 
-[NOTE] Insert relay chip into panel slot.
-Chip location: this workstation — trapped chest.
-eth2 encryption layer active.
-Encryption key in far island vault.
-
-...good luck...
-[connection closed]
-```
-
----
-
-### DELTA — after relay placed (repeat visit)
-
-```
-...DELTA_SRV_04...
-...relay established...
-...eth2 access granted...
-...nothing more to give you...
-...go. you know where.
-[connection closed]
-```
-
----
-
-## Optional NPC: HR_BOT — Overworld lobby
-
-A low-stakes comedic NPC near the entrance. Not part of the puzzle chain.
-Gives flavor text only.
-
-```
-Welcome to HEXCORE.
-Please sign in at the front desk.
-(There is no front desk.)
-(There is no HR department.)
-(There is only the map.)
-Have a productive assessment.
-```
-
-On repeat interaction:
-```
-You're still here.
-The corridor is that way.
-[points at wall]
-```
+- Dialogue must not assign progression to an individual player.
+- Correct choices trigger shared world progression.
+- Wrong choices may add shared noise.
+- Repeat interactions must not grant duplicate rewards.
+- Public documentation must describe intent without publishing exact choices or commands.

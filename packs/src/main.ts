@@ -3,53 +3,34 @@ import {
   system,
   Player,
   GameMode,
+  BlockVolume,
   CommandPermissionLevel,
   CustomCommandParamType,
 } from "@minecraft/server";
 import type {
-  ScoreboardIdentity,
   CustomCommandRegistry,
   CustomCommandOrigin,
   CustomCommandResult,
+  Vector3,
 } from "@minecraft/server";
 import { CustomCommandStatus } from "@minecraft/server";
+import { GAME_CONFIG } from "./game-config.js";
 
 // ---------------------------------------------------------------------------
 // Scoreboard objective keys
 // ---------------------------------------------------------------------------
 
-const OBJ = {
-  noise:    "nb_noise",
-  alarms:   "nb_alarms",
-  locked:   "nb_locked",
-  perm:     "nb_perm",
-  startTick:"nb_start",
-  fwall:    "nb_fwall",   // 1 = firewall currently bypassed; reset on ALERT escalation
-  p01:      "nb_p01",
-  p02:      "nb_p02",
-  p03:      "nb_p03",
-  p04:      "nb_p04",
-  p05:      "nb_p05",
-  p06:      "nb_p06",
-  p07:      "nb_p07",
-} as const;
+const OBJ = GAME_CONFIG.objectives;
 
 const ALL_OBJECTIVES = Object.values(OBJ);
+const GLOBAL_PARTICIPANT = GAME_CONFIG.globalParticipant;
 
 // ---------------------------------------------------------------------------
 // Map boundary (update after first build session — /gamerule showcoordinates true)
 // Walk to each corner of the playable area and record the X,Z values below.
 // ---------------------------------------------------------------------------
 
-const BOUNDARY = {
-  minX: -867,
-  maxX:  1253,
-  minZ: -308,
-  maxZ:  615,
-  spawnX:    982,
-  spawnY:   68,
-  spawnZ:    396,
-};
+const BOUNDARY = GAME_CONFIG.boundary;
 
 // ---------------------------------------------------------------------------
 // Noise thresholds
@@ -68,6 +49,9 @@ const LOCKDOWN_BOSS_MOB = "minecraft:warden";
 const PERM_GUEST = 0;
 const PERM_USER = 1;
 const PERM_ADMIN = 2;
+const PERM_ROOT = 3;
+const LOGIN_USERNAME = GAME_CONFIG.login.username;
+const LOGIN_PASSWORD = GAME_CONFIG.login.password;
 
 // Progress flags (p01..p07) and the context shown when each one is captured,
 // whether it is unlocked by gameplay or set manually via /scoreboard.
@@ -83,12 +67,12 @@ const FLAG_KEYS = [
 
 const FLAG_META: Record<string, { name: string; hint: string }> = {
   [OBJ.p01]: { name: "Credentials", hint: "nb:login <user> <pass> is now available." },
-  [OBJ.p02]: { name: "Session Token", hint: "User session established." },
+  [OBJ.p02]: { name: "Core Route", hint: "The End gateway route is available." },
   [OBJ.p03]: { name: "Exploit Token", hint: "nb:exploit firewall is now available." },
-  [OBJ.p04]: { name: "Admin Rights", hint: "nb:sudo and admin exploits unlocked." },
+  [OBJ.p04]: { name: "Sudo Secret", hint: "nb:sudo is now available." },
   [OBJ.p05]: { name: "IDS Bypass Module", hint: "nb:exploit ids is now available." },
   [OBJ.p06]: { name: "Encryption Key", hint: "nb:exploit encryption is now available." },
-  [OBJ.p07]: { name: "Root Payload", hint: "nb:exploit root is ready — run it from the End core." },
+  [OBJ.p07]: { name: "Port Knock", hint: "The root endpoint is open." },
 };
 
 // ---------------------------------------------------------------------------
@@ -113,7 +97,7 @@ system.beforeEvents.startup.subscribe((event) => {
 let objectivesRegistered = false;
 
 world.afterEvents.worldLoad.subscribe(() => {
-  ensureObjectivesRegistered();
+  ensureSharedStateRegistered();
   clearLegacyNoiseDisplay();
 });
 
@@ -155,22 +139,20 @@ function clearLegacyNoiseDisplay(): void {
   }
 }
 
-function ensurePlayerObjectivesRegistered(player: Player): void {
+function ensureSharedStateRegistered(): void {
   ensureObjectivesRegistered();
   for (const key of ALL_OBJECTIVES) {
     const objective = world.scoreboard.getObjective(key);
     if (!objective) continue;
     try {
-      // getScore returns undefined when the player is not yet a participant.
-      // Only then do we write 0 to register them. Never reset an existing value.
-      if (objective.getScore(player) === undefined) {
-        objective.setScore(player, 0);
+      if (objective.getScore(GLOBAL_PARTICIPANT) === undefined) {
+        objective.setScore(GLOBAL_PARTICIPANT, 0);
       }
     } catch {
       try {
-        objective.setScore(player, 0);
+        objective.setScore(GLOBAL_PARTICIPANT, 0);
       } catch {
-        // Ignore objective init failures and let later ticks retry.
+        // Ignore initialization failures and let later ticks retry.
       }
     }
   }
@@ -193,8 +175,12 @@ function runDeferredPlayerCommand(
 
   // Use next tick to avoid restricted execution edge cases in command callbacks.
   system.runTimeout(() => {
-    ensurePlayerObjectivesRegistered(player);
-    const lockTicks = getScore(player, OBJ.locked);
+    ensureSharedStateRegistered();
+    if (getScore(OBJ.victory) >= 1) {
+      player.sendMessage("§a[terminal]§r  HEXCORE is offline. Root access has already been achieved.");
+      return;
+    }
+    const lockTicks = getScore(OBJ.locked);
     if (lockTicks > 0) {
       const remaining = Math.ceil(lockTicks / 20);
       player.sendMessage(`§c[terminal]§r  TERMINAL LOCKED — ${remaining}s remaining`);
@@ -208,70 +194,53 @@ function runDeferredPlayerCommand(
   return { status: CustomCommandStatus.Success };
 }
 
-function setLockTicks(player: Player, ticks: number): void {
-  const current = getScore(player, OBJ.locked);
+function setLockTicks(ticks: number): void {
+  const current = getScore(OBJ.locked);
   if (ticks > current) {
-    setScore(player, OBJ.locked, ticks);
+    setScore(OBJ.locked, ticks);
   }
 }
 
-function setPermission(player: Player, permission: number): void {
-  setScore(player, OBJ.perm, permission);
+function setPermission(permission: number): void {
+  setScore(OBJ.perm, permission);
 }
 
-function revokeToGuest(player: Player): void {
-  setScore(player, OBJ.p02, 0);
-  setScore(player, OBJ.p04, 0);
-  setPermission(player, PERM_GUEST);
-  player.onScreenDisplay.setTitle("§cACCESS REVOKED", {
-    subtitle: "§7Threat level critical",
-    fadeInDuration: 0,
-    stayDuration: 50,
-    fadeOutDuration: 10,
-  });
+function revokeToGuest(): void {
+  setPermission(PERM_GUEST);
+  for (const player of world.getAllPlayers()) {
+    player.onScreenDisplay.setTitle("§cACCESS REVOKED", {
+      subtitle: "§7Threat level critical",
+      fadeInDuration: 0,
+      stayDuration: 50,
+      fadeOutDuration: 10,
+    });
+  }
 }
 
-function getScoreParticipant(player: Player): ScoreboardIdentity | string {
-  return player.scoreboardIdentity ?? player.name;
-}
-
-function getScore(player: Player, objective: string): number {
+function getScore(objective: string): number {
   const scoreboardObjective = world.scoreboard.getObjective(objective);
   if (!scoreboardObjective) return 0;
   try {
-    const entityScore = scoreboardObjective.getScore(player);
-    if (entityScore !== undefined) return entityScore;
-    const identity = player.scoreboardIdentity;
-    if (identity) {
-      const identityScore = scoreboardObjective.getScore(identity);
-      if (identityScore !== undefined) return identityScore;
-    }
-    return scoreboardObjective.getScore(player.name) ?? 0;
+    return scoreboardObjective.getScore(GLOBAL_PARTICIPANT) ?? 0;
   } catch {
-    try {
-      return scoreboardObjective.getScore(player.name) ?? 0;
-    } catch {
-      return 0;
-    }
+    return 0;
   }
 }
 
-function setScore(player: Player, objective: string, value: number): void {
+function setScore(objective: string, value: number): void {
   const scoreboardObjective = world.scoreboard.getObjective(objective);
   if (!scoreboardObjective) return;
   try {
-    // Always write to the player entity participant so that values set via
-    // /scoreboard players set @s ... and script writes target the same record.
-    scoreboardObjective.setScore(player, value);
+    scoreboardObjective.setScore(GLOBAL_PARTICIPANT, value);
   } catch {
     // Ignore write failures; the next writable tick retries.
   }
 }
 
-function addNoise(player: Player, amount: number): void {
-  ensurePlayerObjectivesRegistered(player);
-  const current = getScore(player, OBJ.noise);
-  setScore(player, OBJ.noise, Math.min(NOISE_MAX, current + amount));
+function addNoise(amount: number): void {
+  ensureSharedStateRegistered();
+  const current = getScore(OBJ.noise);
+  setScore(OBJ.noise, Math.max(0, Math.min(NOISE_MAX, current + amount)));
 }
 
 type NoiseBand = "CLEAN" | "WARNING" | "ALERT" | "BREACH" | "LOCKDOWN";
@@ -288,7 +257,7 @@ function getMisuseSpawnCount(level: number): number {
   const band = getNoiseBand(level);
   switch (band) {
     case "CLEAN":
-      return 1;
+      return 0;
     case "WARNING":
       return 1;
     case "ALERT":
@@ -337,7 +306,62 @@ function spawnPatrolEntity(
   }
 }
 
-function spawnMisusePatrols(player: Player, count: number, band: NoiseBand): void {
+function findSafeSpawnLocation(player: Player, x: number, z: number): Vector3 | undefined {
+  const baseY = Math.floor(player.location.y);
+  for (let y = baseY + 4; y >= baseY - 8; y--) {
+    try {
+      const floor = player.dimension.getBlock({ x, y, z });
+      const body = player.dimension.getBlock({ x, y: y + 1, z });
+      const head = player.dimension.getBlock({ x, y: y + 2, z });
+      if (floor && body && head && !floor.isAir && body.isAir && head.isAir) {
+        return { x: x + 0.5, y: y + 1, z: z + 0.5 };
+      }
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+function getPatrolMarkers(player: Player): Vector3[] {
+  const center = player.location;
+  const radius = 64;
+  const verticalRange = 16;
+  try {
+    const volume = new BlockVolume(
+      {
+        x: Math.floor(center.x) - radius,
+        y: Math.floor(center.y) - verticalRange,
+        z: Math.floor(center.z) - radius,
+      },
+      {
+        x: Math.floor(center.x) + radius,
+        y: Math.floor(center.y) + verticalRange,
+        z: Math.floor(center.z) + radius,
+      },
+    );
+    const matches = player.dimension.getBlocks(
+      volume,
+      { includeTypes: ["minecraft:chiseled_stone_bricks"] },
+      true,
+    );
+    return [...matches.getBlockLocationIterator()]
+      .sort((a, b) => {
+        const distanceA = ((a.x - center.x) ** 2) + ((a.z - center.z) ** 2);
+        const distanceB = ((b.x - center.x) ** 2) + ((b.z - center.z) ** 2);
+        return distanceA - distanceB;
+      });
+  } catch {
+    return [];
+  }
+}
+
+function spawnMisusePatrols(
+  player: Player,
+  count: number,
+  band: NoiseBand,
+  includeLockdownBoss = true,
+): void {
   if (count <= 0) return;
 
   const offsets = [
@@ -365,33 +389,49 @@ function spawnMisusePatrols(player: Player, count: number, band: NoiseBand): voi
 
   const loc = player.location;
   const primaryMob = getPatrolMobForBand(band);
+  const markers = getPatrolMarkers(player);
+
+  const getSpawnLocation = (index: number): Vector3 | undefined => {
+    const marker = markers[index % Math.max(1, markers.length)];
+    if (marker) {
+      return findSafeSpawnLocation(player, marker.x, marker.z) ?? {
+        x: marker.x + 0.5,
+        y: marker.y + 1,
+        z: marker.z + 0.5,
+      };
+    }
+    const offset = offsets[index % offsets.length];
+    return findSafeSpawnLocation(
+      player,
+      Math.floor(loc.x + offset.x),
+      Math.floor(loc.z + offset.z),
+    );
+  };
 
   let i = 0;
 
   // LOCKDOWN includes one boss-tier spawn before support units.
-  if (band === "LOCKDOWN") {
-    const offset = offsets[0];
-    const sx = Math.floor(loc.x + offset.x);
-    const sy = Math.floor(loc.y);
-    const sz = Math.floor(loc.z + offset.z);
-    spawnPatrolEntity(player, LOCKDOWN_BOSS_MOB, sx, sy, sz);
+  if (band === "LOCKDOWN" && includeLockdownBoss) {
+    const spawn = getSpawnLocation(0);
+    if (spawn) {
+      spawnPatrolEntity(player, LOCKDOWN_BOSS_MOB, spawn.x, spawn.y, spawn.z);
+    }
     i = 1;
   }
 
   for (; i < count; i++) {
-    const offset = offsets[i % offsets.length];
-    const sx = Math.floor(loc.x + offset.x);
-    const sy = Math.floor(loc.y);
-    const sz = Math.floor(loc.z + offset.z);
-    spawnPatrolEntity(player, primaryMob, sx, sy, sz);
+    const spawn = getSpawnLocation(i);
+    if (spawn) {
+      spawnPatrolEntity(player, primaryMob, spawn.x, spawn.y, spawn.z);
+    }
   }
 }
 
 function applyCommandPenalty(player: Player, reason: string, baseNoise: number): void {
-  ensurePlayerObjectivesRegistered(player);
+  ensureSharedStateRegistered();
 
-  addNoise(player, baseNoise);
-  const updatedNoise = getScore(player, OBJ.noise);
+  addNoise(baseNoise);
+  const updatedNoise = getScore(OBJ.noise);
   const band = getNoiseBand(updatedNoise);
   const spawnCount = getMisuseSpawnCount(updatedNoise);
   spawnMisusePatrols(player, spawnCount, band);
@@ -551,7 +591,7 @@ function registerCommands(registry: CustomCommandRegistry): void {
 const lastChatDispatch = new Map<string, string>();
 
 function dispatchChatCommand(sender: Player, rawMessage: string): boolean {
-  ensurePlayerObjectivesRegistered(sender);
+  ensureSharedStateRegistered();
 
   const raw = rawMessage.trim();
   if (!raw) return false;
@@ -658,7 +698,8 @@ function registerChatFallbackCommands(): void {
 
 // ---------------------------------------------------------------------------
 // Script event fallback command registration
-// Use this when both custom commands and chat hooks are unavailable.
+// Use this when both custom commands and chat hooks are unavailable. Puzzle
+// command blocks also send nb:knock events for the shared Port Knock state.
 // Example usage in chat:
 //   /scriptevent nb:menu
 //   /scriptevent nb:status
@@ -686,16 +727,46 @@ function registerScriptEventFallbackCommands(): void {
       initiator?: unknown;
     };
 
-    const sender = (event.sourceEntity ?? event.initiator) as unknown;
-    if (!(sender instanceof Player)) return;
-
     const id = (event.id ?? "").trim().toLowerCase();
     if (!id.startsWith("nb:")) return;
 
     const msg = (event.message ?? "").trim();
+    if (id === "nb:knock") {
+      handlePortKnock(msg);
+      return;
+    }
+
+    const sender = (event.sourceEntity ?? event.initiator) as unknown;
+    if (!(sender instanceof Player)) return;
+
     const combined = msg.length > 0 ? `${id} ${msg}` : id;
     dispatchChatCommand(sender, combined);
   });
+}
+
+function handlePortKnock(rawPort: string): void {
+  ensureSharedStateRegistered();
+  if (getScore(OBJ.p07) >= 1 || getScore(OBJ.victory) >= 1) return;
+
+  const sequence = GAME_CONFIG.portKnockSequence;
+  const state = Math.max(0, Math.min(2, getScore(OBJ.knock)));
+  const port = rawPort.trim();
+
+  if (port !== sequence[state]) {
+    setScore(OBJ.knock, 0);
+    addNoise(2);
+    world.sendMessage(`§c[PORT KNOCK]§r  Sequence rejected at port ${port || "?"}. State reset. §7(noise +2)§r`);
+    return;
+  }
+
+  if (state < sequence.length - 1) {
+    setScore(OBJ.knock, state + 1);
+    world.sendMessage(`§7[PORT KNOCK]§r  SYN acknowledged (${state + 1}/${sequence.length}).`);
+    return;
+  }
+
+  setScore(OBJ.knock, 0);
+  setScore(OBJ.p07, 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -704,20 +775,21 @@ function registerScriptEventFallbackCommands(): void {
 
 function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
-    const hasCredentials  = getScore(player, OBJ.p01) >= 1;
-    const hasSession      = getScore(player, OBJ.p02) >= 1;
-    const hasExploitToken = getScore(player, OBJ.p03) >= 1;
-    const hasAdmin        = getScore(player, OBJ.p04) >= 1;
-    const hasIdsBypass    = getScore(player, OBJ.p05) >= 1;
-    const hasEncKey       = getScore(player, OBJ.p06) >= 1;
-    const hasRootReady    = getScore(player, OBJ.p07) >= 1;
-    const isUser  = getScore(player, OBJ.perm) >= PERM_USER;
-    const isAdmin = getScore(player, OBJ.perm) >= PERM_ADMIN;
+    ensureSharedStateRegistered();
+    const hasCredentials  = getScore(OBJ.p01) >= 1;
+    const hasCoreRoute    = getScore(OBJ.p02) >= 1;
+    const hasExploitToken = getScore(OBJ.p03) >= 1;
+    const hasSudoSecret   = getScore(OBJ.p04) >= 1;
+    const hasIdsBypass    = getScore(OBJ.p05) >= 1;
+    const hasEncKey       = getScore(OBJ.p06) >= 1;
+    const hasPortKnock    = getScore(OBJ.p07) >= 1;
+    const encryptionBroken = getScore(OBJ.enc) >= 1;
+    const isUser  = getScore(OBJ.perm) >= PERM_USER;
+    const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
 
     // Always visible
     const lines: string[] = [
-      "§a[HEXCORE TERMINAL v0.0.23]§r",
+      "§a[HEXCORE TERMINAL v0.0.24]§r",
       "§7Commands available:§r",
       "  §fnb:menu§r      — this output",
       "  §fnb:whoami§r    — current identity",
@@ -732,35 +804,38 @@ function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
       lines.push("  §fnb:scan§r      — enumerate services");
     }
 
-    // Unlocked by user session (p02) or user perm
+    // Available after the shared session has authenticated.
     if (isUser) {
       lines.push("  §fnb:patch_covers§r — reduce trace noise §8(60s cooldown)§r");
     }
 
     // Exploit chain — show each sub-target only when its token is present
-    if (hasExploitToken || hasIdsBypass || hasEncKey || hasRootReady) {
+    if (hasExploitToken || hasIdsBypass || hasEncKey || (hasPortKnock && encryptionBroken)) {
       lines.push("  §fnb:exploit§r   — exploit chain:");
       if (hasExploitToken) lines.push("    §8›§r firewall" + (isUser ? "" : " §8[user required]§r"));
       if (hasIdsBypass)    lines.push("    §8›§r ids"      + (isUser ? "" : " §8[user required]§r"));
       if (hasEncKey)       lines.push("    §8›§r encryption" + (isAdmin ? "" : " §8[admin required]§r"));
-      if (hasRootReady)    lines.push("    §8›§r root §8[End dimension required]§r" + (isAdmin ? "" : " §8[admin required]§r"));
+      if (hasPortKnock && encryptionBroken) {
+        lines.push("    §8›§r root §8[End dimension required]§r" + (isAdmin ? "" : " §8[admin required]§r"));
+      }
     }
 
-    // Admin commands
-    if (isAdmin || hasAdmin) {
+    if (hasSudoSecret && isUser && !isAdmin) {
       lines.push("  §fnb:sudo§r      — privileged exec");
+    }
+    if (isAdmin) {
       lines.push("  §fnb:kill_patrol§r — clear nearby patrols");
     }
 
     // Flag summary for debugging / player awareness
     const flagSummary = [
       `p01=${hasCredentials ? 1 : 0}`,
-      `p02=${hasSession ? 1 : 0}`,
+      `p02=${hasCoreRoute ? 1 : 0}`,
       `p03=${hasExploitToken ? 1 : 0}`,
-      `p04=${hasAdmin ? 1 : 0}`,
+      `p04=${hasSudoSecret ? 1 : 0}`,
       `p05=${hasIdsBypass ? 1 : 0}`,
       `p06=${hasEncKey ? 1 : 0}`,
-      `p07=${hasRootReady ? 1 : 0}`,
+      `p07=${hasPortKnock ? 1 : 0}`,
     ].join("  ");
     lines.push(`§7Flags:§r  ${flagSummary}`);
 
@@ -770,42 +845,42 @@ function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
 
 function handleWhoami(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
-    const p01 = getScore(player, OBJ.p01);
-    const p04 = getScore(player, OBJ.p04);
+    ensureSharedStateRegistered();
+    const permission = getScore(OBJ.perm);
     let role: string;
-    if (p04 >= 1) role = "§cadmin§r";
-    else if (p01 >= 1) role = "§euser§r";
+    if (permission >= PERM_ROOT) role = "§aroot§r";
+    else if (permission >= PERM_ADMIN) role = "§cadmin§r";
+    else if (permission >= PERM_USER) role = "§euser§r";
     else role = "§8guest§r";
     const uid = Math.abs(
       player.name.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 9999,
     );
-    player.sendMessage(`§7[whoami]§r  uid=${uid}  user=${player.name}  role=${role}`);
+    player.sendMessage(`§7[whoami]§r  operator=${player.name}  shared_role=${role}  uid=${uid}`);
   });
 }
 
 function handleScan(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
 
-    if (getScore(player, OBJ.p01) < 1) {
-      applyCommandPenalty(player, "[scan] Access denied. No valid session token.", 4);
+    if (getScore(OBJ.p01) < 1) {
+      applyCommandPenalty(player, "[scan] Access denied. Credentials not discovered.", 4);
       return;
     }
 
-    addNoise(player, 15);
+    addNoise(15);
 
-    const p02 = getScore(player, OBJ.p02) >= 1;
-    const p03 = getScore(player, OBJ.p03) >= 1;
-    const p04 = getScore(player, OBJ.p04) >= 1;
+    const firewallBypassed = getScore(OBJ.fwall) >= 1;
+    const idsDisabled = getScore(OBJ.ids) >= 1;
+    const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
 
     const lines = [
       "§7[scan]§r  Scanning local subnet... §7(noise +15)§r",
       `  §f22/tcp§r   open  §assh§r    OpenSSH 8.4`,
       `  §f80/tcp§r   open  §ahttp§r   nginx/1.18`,
-      `  §f443/tcp§r  open  §ahttps§r  nginx/1.18   ` + (p02 ? "§a[CLEARED]§r" : "§e[FIREWALL ACTIVE]§r"),
-      `  §f3306/tcp§r open  §amysql§r              ` + (p03 ? "§a[CLEARED]§r" : "§8[FILTERED]§r"),
-      `  §f9999/tcp§r open  §aadmin§r              ` + (p04 ? "§a[CLEARED]§r" : "§c[RESTRICTED]§r"),
+      `  §f443/tcp§r  open  §ahttps§r  nginx/1.18   ` + (firewallBypassed ? "§a[CLEARED]§r" : "§e[FIREWALL ACTIVE]§r"),
+      `  §f3306/tcp§r open  §amysql§r              ` + (idsDisabled ? "§a[UNMONITORED]§r" : "§8[IDS MONITORED]§r"),
+      `  §f9999/tcp§r open  §aadmin§r              ` + (isAdmin ? "§a[CLEARED]§r" : "§c[RESTRICTED]§r"),
       "§8  tip: run /nb:ls to list known files, then /nb:cat auth.log or /nb:cat config to read them.§r",
     ];
     player.sendMessage(lines.join("\n"));
@@ -814,11 +889,11 @@ function handleScan(origin: CustomCommandOrigin): CustomCommandResult {
 
 function handleStatus(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
     const solved = [OBJ.p01, OBJ.p02, OBJ.p03, OBJ.p04, OBJ.p05, OBJ.p06, OBJ.p07]
-      .filter((key) => getScore(player, key) >= 1).length;
-    const noise = getScore(player, OBJ.noise);
-    const alarms = getScore(player, OBJ.alarms);
+      .filter((key) => getScore(key) >= 1).length;
+    const noise = getScore(OBJ.noise);
+    const alarms = getScore(OBJ.alarms);
     player.sendMessage(
       `§7[status]§r  Challenges: §a${solved}/7§r  Noise: ${noiseBar(noise)} ${noise}  Alarms: §c${alarms}§r`,
     );
@@ -827,7 +902,7 @@ function handleStatus(origin: CustomCommandOrigin): CustomCommandResult {
 
 function handleLogin(origin: CustomCommandOrigin, ...args: unknown[]): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
 
     // Custom command registry passes parameters as separate arguments, while
     // the chat fallback spreads its parsed tokens. Normalize both into a list.
@@ -837,23 +912,35 @@ function handleLogin(origin: CustomCommandOrigin, ...args: unknown[]): CustomCom
       return;
     }
 
-    if (getScore(player, OBJ.p01) < 1) {
+    if (getScore(OBJ.p01) < 1) {
       applyCommandPenalty(player, "[login] Authentication failed. Invalid credentials.", 4);
       return;
     }
 
-    addNoise(player, 10);
-    setScore(player, OBJ.p02, 1);
-    setPermission(player, PERM_USER);
-    const username = params[0];
+    const username = params[0].toLowerCase();
+    const password = params[1];
+    if (username !== LOGIN_USERNAME || password !== LOGIN_PASSWORD) {
+      applyCommandPenalty(player, "[login] Authentication failed. Invalid credentials.", 4);
+      return;
+    }
+
+    if (getScore(OBJ.perm) >= PERM_USER) {
+      player.sendMessage("§7[login]§r  Shared user session is already active.");
+      return;
+    }
+
+    addNoise(10);
+    setPermission(PERM_USER);
     player.sendMessage(`§a[login]§r  Welcome, ${username}. Session token established.`);
-    player.onScreenDisplay.setTitle("§aACCESS GRANTED");
+    for (const onlinePlayer of world.getAllPlayers()) {
+      onlinePlayer.onScreenDisplay.setTitle("§aACCESS GRANTED");
+    }
   });
 }
 
 function handleSudo(origin: CustomCommandOrigin, ...args: unknown[]): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
 
     const params = args.filter((a): a is string => typeof a === "string");
     if (params.length < 1) {
@@ -861,16 +948,25 @@ function handleSudo(origin: CustomCommandOrigin, ...args: unknown[]): CustomComm
       return;
     }
 
-    if (getScore(player, OBJ.p04) < 1) {
-      const currentNoise = getScore(player, OBJ.noise);
+    if (getScore(OBJ.perm) < PERM_USER) {
+      applyCommandPenalty(player, "[sudo] User session required.", 4);
+      return;
+    }
+
+    if (getScore(OBJ.p04) < 1) {
+      const currentNoise = getScore(OBJ.noise);
       const noisePenalty = currentNoise >= 75 ? 6 : 4;
       applyCommandPenalty(player, "[sudo] Permission denied. Admin verification required.", noisePenalty);
       return;
     }
 
-    addNoise(player, 25);
-    setScore(player, OBJ.p04, 1);
-    setPermission(player, PERM_ADMIN);
+    if (getScore(OBJ.perm) >= PERM_ADMIN) {
+      player.sendMessage("§7[sudo]§r  Shared admin session is already active.");
+      return;
+    }
+
+    addNoise(25);
+    setPermission(PERM_ADMIN);
     const action = params[0];
     player.sendMessage(`§a[sudo]§r  Executing: §f${action}§r`);
     player.sendMessage("§7[sudo]§r  Done.");
@@ -879,8 +975,12 @@ function handleSudo(origin: CustomCommandOrigin, ...args: unknown[]): CustomComm
 
 function handleLs(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
-    addNoise(player, 1);
+    ensureSharedStateRegistered();
+    if (getScore(OBJ.p01) < 1) {
+      applyCommandPenalty(player, "[ls] Access denied. Credentials not discovered.", 3);
+      return;
+    }
+    addNoise(1);
 
     const lines = [
       "§7[ls]§r  /",
@@ -898,7 +998,12 @@ function handleLs(origin: CustomCommandOrigin): CustomCommandResult {
 
 function handleCat(origin: CustomCommandOrigin, ...args: unknown[]): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
+
+    if (getScore(OBJ.p01) < 1) {
+      applyCommandPenalty(player, "[cat] Access denied. Credentials not discovered.", 4);
+      return;
+    }
 
     const params = args.filter((a): a is string => typeof a === "string");
     if (params.length < 1) {
@@ -925,7 +1030,7 @@ function handleCat(origin: CustomCommandOrigin, ...args: unknown[]): CustomComma
     const isConfig = norm === "config" || norm === "etc/config";
 
     if (isAuth) {
-      addNoise(player, 1);
+      addNoise(1);
       player.sendMessage(
         [
           "§7[cat] /var/log/auth.log§r",
@@ -939,7 +1044,7 @@ function handleCat(origin: CustomCommandOrigin, ...args: unknown[]): CustomComma
     }
 
     if (isConfig) {
-      addNoise(player, 1);
+      addNoise(1);
       player.sendMessage(
         [
           "§7[cat] /etc/config§r",
@@ -959,7 +1064,7 @@ function handleCat(origin: CustomCommandOrigin, ...args: unknown[]): CustomComma
 
 function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
 
     const params = args.filter((a): a is string => typeof a === "string");
     if (params.length < 1) {
@@ -968,19 +1073,23 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
     }
 
     const target = params[0].toLowerCase();
-    const permission = getScore(player, OBJ.perm);
+    const permission = getScore(OBJ.perm);
 
     if (target === "firewall") {
       if (permission < PERM_USER) {
         applyCommandPenalty(player, "[exploit firewall] User permission required.", 4);
         return;
       }
-      if (getScore(player, OBJ.p03) < 1) {
+      if (getScore(OBJ.p03) < 1) {
         applyCommandPenalty(player, "[exploit firewall] Missing exploit token.", 20);
         return;
       }
-      addNoise(player, 15);
-      setScore(player, OBJ.fwall, 1);
+      if (getScore(OBJ.fwall) >= 1) {
+        player.sendMessage("§7[exploit firewall]§r  Firewall bypass is already active.");
+        return;
+      }
+      addNoise(15);
+      setScore(OBJ.fwall, 1);
       player.sendMessage("§a[exploit firewall]§r  Firewall bypassed. Access route opened.");
       return;
     }
@@ -990,12 +1099,17 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
         applyCommandPenalty(player, "[exploit ids] User permission required.", 4);
         return;
       }
-      if (getScore(player, OBJ.p05) < 1) {
+      if (getScore(OBJ.p05) < 1) {
         applyCommandPenalty(player, "[exploit ids] IDS bypass module not found.", 18);
         return;
       }
-      addNoise(player, 12);
-      player.sendMessage("§a[exploit ids]§r  IDS bypass active. Detection pressure reduced.");
+      if (getScore(OBJ.ids) >= 1) {
+        player.sendMessage("§7[exploit ids]§r  IDS bypass is already active.");
+        return;
+      }
+      addNoise(12);
+      setScore(OBJ.ids, 1);
+      player.sendMessage("§a[exploit ids]§r  IDS bypass active. Noise now decays twice as fast.");
       return;
     }
 
@@ -1004,13 +1118,17 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
         applyCommandPenalty(player, "[exploit encryption] Admin permission required.", 6);
         return;
       }
-      if (getScore(player, OBJ.p06) < 1) {
+      if (getScore(OBJ.p06) < 1) {
         applyCommandPenalty(player, "[exploit encryption] Encryption key not found.", 25);
         return;
       }
-      addNoise(player, 20);
-      setScore(player, OBJ.p07, 1);
-      player.sendMessage("§a[exploit encryption]§r  Core encryption broken. Root payload armed.");
+      if (getScore(OBJ.enc) >= 1) {
+        player.sendMessage("§7[exploit encryption]§r  Core encryption is already broken.");
+        return;
+      }
+      addNoise(20);
+      setScore(OBJ.enc, 1);
+      player.sendMessage("§a[exploit encryption]§r  Core encryption broken. Complete the Port Knock to expose root.");
       return;
     }
 
@@ -1019,15 +1137,22 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
         applyCommandPenalty(player, "[exploit root] Admin permission required.", 6);
         return;
       }
-      if (getScore(player, OBJ.p07) < 1) {
-        applyCommandPenalty(player, "[exploit root] Root payload not armed.", 30);
+      if (getScore(OBJ.enc) < 1) {
+        applyCommandPenalty(player, "[exploit root] Core encryption is still active.", 30);
+        return;
+      }
+      if (getScore(OBJ.p07) < 1) {
+        applyCommandPenalty(player, "[exploit root] Port Knock sequence incomplete.", 30);
         return;
       }
       if (player.dimension.id !== "minecraft:the_end") {
         applyCommandPenalty(player, "[exploit root] Must execute from the End system core.", 30);
         return;
       }
-      addNoise(player, 50);
+      addNoise(50);
+      setPermission(PERM_ROOT);
+      setScore(OBJ.victory, 1);
+      setScore(OBJ.locked, 0);
       player.sendMessage("§a[exploit root]§r  Root access granted. Core shutdown sequence initiated...");
       player.onScreenDisplay.setTitle("§aROOT ACCESS", {
         subtitle: "§7System core compromised",
@@ -1045,10 +1170,7 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
       }, 40);
 
       system.runTimeout(() => {
-        try {
-          player.sendMessage("§c[SYSTEM]§r  Emergency guardian spawning...");
-          dim.spawnEntity("minecraft:warden", loc);
-        } catch {}
+        try { world.sendMessage("§6[SYSTEM]§r  SENTINEL processes terminated."); } catch {}
       }, 80);
 
       system.runTimeout(() => {
@@ -1066,9 +1188,9 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
             stayDuration: 80,
             fadeOutDuration: 20,
           });
-          player.sendMessage(
+          world.sendMessage(
             "§a[NullByte]§r  §lMISSION COMPLETE§r\n" +
-            "  You compromised the HEXCORE core system.\n" +
+            `  ${player.name} executed the root exploit.\n` +
             "  The network has been dismantled.",
           );
         } catch {}
@@ -1083,34 +1205,34 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
 
 function handlePatchCovers(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
 
-    if (getScore(player, OBJ.perm) < PERM_USER) {
+    if (getScore(OBJ.perm) < PERM_USER) {
       applyCommandPenalty(player, "[patch_covers] User permission required.", 4);
       return;
     }
 
-    const now = tickCount;
-    const readyTick = getScore(player, OBJ.startTick);
+    const now = world.getAbsoluteTime();
+    const readyTick = getScore(OBJ.patchReady);
     if (readyTick > now) {
       const waitSeconds = Math.ceil((readyTick - now) / 20);
       applyCommandPenalty(player, `[patch_covers] Cooldown active (${waitSeconds}s remaining).`, 5);
       return;
     }
 
-    addNoise(player, 5);
-    const reduced = Math.max(0, getScore(player, OBJ.noise) - 15);
-    setScore(player, OBJ.noise, reduced);
-    setScore(player, OBJ.startTick, now + (60 * 20));
+    addNoise(5);
+    const reduced = Math.max(0, getScore(OBJ.noise) - 15);
+    setScore(OBJ.noise, reduced);
+    setScore(OBJ.patchReady, now + (60 * 20));
     player.sendMessage("§a[patch_covers]§r  Logs sanitized. Noise reduced by 15. Cooldown 60s.");
   });
 }
 
 function handleKillPatrol(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
-    ensurePlayerObjectivesRegistered(player);
+    ensureSharedStateRegistered();
 
-    if (getScore(player, OBJ.perm) < PERM_ADMIN) {
+    if (getScore(OBJ.perm) < PERM_ADMIN) {
       applyCommandPenalty(player, "[kill_patrol] Admin permission required.", 10);
       return;
     }
@@ -1138,7 +1260,7 @@ function handleKillPatrol(origin: CustomCommandOrigin): CustomCommandResult {
       }
     }
 
-    addNoise(player, 5);
+    addNoise(5);
     player.sendMessage(`§a[kill_patrol]§r  Neutralized ${killed} defense entities. §7(noise +5)§r`);
   });
 }
@@ -1148,47 +1270,39 @@ function handleKillPatrol(origin: CustomCommandOrigin): CustomCommandResult {
 // ---------------------------------------------------------------------------
 
 let tickCount = 0;
-const lastNoiseBand = new Map<string, NoiseBand>();
-const lastPatrolTick = new Map<string, number>();
+let lastNoiseBand: NoiseBand | undefined;
+let lastPatrolTick = 0;
+const lastDimension = new Map<string, string>();
 
-// Flag-capture feedback. We seed a baseline on the first tick we see a player
-// (no announcement), then report any 0 -> 1 transition afterwards. This covers
-// both gameplay unlocks and manual /scoreboard players set @s nb_pXX 1.
+// Puzzle flags are immutable shared discoveries. Seed their baseline once when
+// the script starts, then announce and reward every later 0 -> 1 transition.
 const lastFlagState = new Map<string, number>();
-const flagBaselineSeeded = new Set<string>();
+let flagBaselineSeeded = false;
 
-// Read the highest score across all participant types for a flag key.
-// /scoreboard players set @s may write a NAME participant while script-side
-// entity writes go to the entity participant. Taking the max catches either.
-function getScoreAny(player: Player, key: string): number {
-  const obj = world.scoreboard.getObjective(key);
-  if (!obj) return 0;
-  let best = 0;
-  try { const v = obj.getScore(player); if (v !== undefined && v > best) best = v; } catch {}
-  try {
-    const id = player.scoreboardIdentity;
-    if (id) { const v = obj.getScore(id); if (v !== undefined && v > best) best = v; }
-  } catch {}
-  try { const v = obj.getScore(player.name); if (v !== undefined && v > best) best = v; } catch {}
-  return best;
-}
-
-function announceFlagGains(player: Player): void {
-  const seeded = flagBaselineSeeded.has(player.name);
+function announceFlagGains(): void {
   for (const key of FLAG_KEYS) {
-    const value = getScoreAny(player, key);
-    const mapKey = `${player.name}:${key}`;
-    if (seeded) {
-      const prev = lastFlagState.get(mapKey) ?? 0;
+    const value = getScore(key);
+    if (flagBaselineSeeded) {
+      const prev = lastFlagState.get(key) ?? 0;
       if (prev < 1 && value >= 1) {
         const meta = FLAG_META[key];
-        player.sendMessage(`§a[FLAG CAPTURED]§r  §e${meta.name}§r unlocked! §7${meta.hint}§r`);
-        player.onScreenDisplay.setActionBar(`§a✔ ${meta.name} captured§r`);
+        addNoise(-3);
+        world.sendMessage(
+          `§a[FLAG CAPTURED]§r  §e${meta.name}§r unlocked! §7${meta.hint} Noise -3.§r`,
+        );
+        for (const player of world.getAllPlayers()) {
+          player.onScreenDisplay.setTitle("§aFLAG CAPTURED", {
+            subtitle: meta.name,
+            fadeInDuration: 0,
+            stayDuration: 30,
+            fadeOutDuration: 10,
+          });
+        }
       }
     }
-    lastFlagState.set(mapKey, value);
+    lastFlagState.set(key, value);
   }
-  flagBaselineSeeded.add(player.name);
+  flagBaselineSeeded = true;
 }
 
 function getPatrolIntervalTicks(band: NoiseBand): number {
@@ -1223,122 +1337,155 @@ function getScheduledPatrolCount(band: NoiseBand): number {
   }
 }
 
-function onBandEscalation(player: Player, from: NoiseBand, to: NoiseBand): void {
+function spawnSharedPatrols(count: number, band: NoiseBand): void {
+  const players = world.getAllPlayers();
+  if (players.length === 0 || count <= 0) return;
+
+  const baseCount = Math.floor(count / players.length);
+  let remainder = count % players.length;
+  for (let index = 0; index < players.length; index++) {
+    const playerCount = baseCount + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) remainder--;
+    if (playerCount <= 0) continue;
+    spawnMisusePatrols(players[index], playerCount, band, index === 0);
+  }
+}
+
+function onBandEscalation(from: NoiseBand, to: NoiseBand): void {
   if (from === to) return;
 
+  const bandRank = { CLEAN: 0, WARNING: 1, ALERT: 2, BREACH: 3, LOCKDOWN: 4 } as const;
+  if (bandRank[to] >= bandRank.ALERT) {
+    setScore(OBJ.alarms, getScore(OBJ.alarms) + 1);
+    if (getScore(OBJ.fwall) >= 1) {
+      setScore(OBJ.fwall, 0);
+      world.sendMessage("§6[SENTINEL]§r  Defense team patched the firewall exploit.");
+    }
+  }
+
   if (to === "WARNING") {
-    spawnMisusePatrols(player, 3, "WARNING");
-    player.sendMessage("§e[SENTINEL]§r  Warning threshold reached.");
+    spawnSharedPatrols(3, "WARNING");
+    world.sendMessage("§e[SENTINEL]§r  Warning threshold reached.");
     return;
   }
 
   if (to === "ALERT") {
-    spawnMisusePatrols(player, 6, "ALERT");
-    setLockTicks(player, LOCK_ALERT_TICKS);
-    // Phase 8 — auto-patch the firewall if the player had it bypassed.
-    if (getScore(player, OBJ.fwall) >= 1) {
-      setScore(player, OBJ.fwall, 0);
-      player.sendMessage("§6[SENTINEL]§r  Defense team patched the firewall exploit. Re-exploit required.");
-    }
-    player.sendMessage("§6[SENTINEL]§r  ALERT state active. Terminal lockout: 10s.");
+    spawnSharedPatrols(6, "ALERT");
+    setLockTicks(LOCK_ALERT_TICKS);
+    world.sendMessage("§6[SENTINEL]§r  ALERT state active. Terminal lockout: 10s.");
     return;
   }
 
   if (to === "BREACH") {
-    spawnMisusePatrols(player, 12, "BREACH");
-    setLockTicks(player, LOCK_BREACH_TICKS);
-    revokeToGuest(player);
-    player.teleport({ x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ });
-    player.sendMessage("§c[SENTINEL]§r  BREACH state. Permissions revoked.");
+    spawnSharedPatrols(12, "BREACH");
+    setLockTicks(LOCK_BREACH_TICKS);
+    revokeToGuest();
+    const overworld = world.getDimension("overworld");
+    for (const player of world.getAllPlayers()) {
+      player.teleport(
+        { x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ },
+        { dimension: overworld },
+      );
+    }
+    world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked.");
     return;
   }
 
   if (to === "LOCKDOWN") {
-    spawnMisusePatrols(player, 20, "LOCKDOWN");
-    setLockTicks(player, LOCK_LOCKDOWN_TICKS);
-    revokeToGuest(player);
-    player.sendMessage("§4[SENTINEL]§r  LOCKDOWN active. Terminal disabled.");
+    spawnSharedPatrols(20, "LOCKDOWN");
+    setLockTicks(LOCK_LOCKDOWN_TICKS);
+    revokeToGuest();
+    world.sendMessage("§4[SENTINEL]§r  LOCKDOWN active. Terminal disabled.");
+  }
+}
+
+function checkDimensionEntry(player: Player): void {
+  const currentDimension = player.dimension.id;
+  const previousDimension = lastDimension.get(player.name);
+  lastDimension.set(player.name, currentDimension);
+  if (!previousDimension || previousDimension === currentDimension) return;
+
+  if (currentDimension === "minecraft:nether" && getScore(OBJ.fwall) < 1) {
+    addNoise(8);
+    world.sendMessage(`§c[SENTINEL]§r  ${player.name} entered the Nether before the firewall was bypassed. Noise +8.`);
+  }
+
+  if (currentDimension === "minecraft:the_end" && getScore(OBJ.p02) < 1) {
+    addNoise(8);
+    world.sendMessage(`§c[SENTINEL]§r  ${player.name} entered the End before the core route was opened. Noise +8.`);
   }
 }
 
 function gameTick(): void {
   tickCount++;
+  ensureSharedStateRegistered();
 
-  for (const player of world.getAllPlayers()) {
-    ensurePlayerObjectivesRegistered(player);
+  const players = world.getAllPlayers();
+  if (getScore(OBJ.victory) >= 1) {
+    for (const player of players) {
+      player.onScreenDisplay.setActionBar("§aROOT ACCESS — HEXCORE OFFLINE§r");
+    }
+    system.run(gameTick);
+    return;
+  }
 
-    const lockTicks = getScore(player, OBJ.locked);
-    if (lockTicks > 0) {
-      setScore(player, OBJ.locked, lockTicks - 1);
+  const lockTicks = getScore(OBJ.locked);
+  if (lockTicks > 0) {
+    setScore(OBJ.locked, lockTicks - 1);
+  }
+
+  const noise = getScore(OBJ.noise);
+  const band = getNoiseBand(noise);
+  const previousBand = lastNoiseBand ?? band;
+  if (band !== previousBand) {
+    const bandRank = { CLEAN: 0, WARNING: 1, ALERT: 2, BREACH: 3, LOCKDOWN: 4 } as const;
+    if (bandRank[band] > bandRank[previousBand]) {
+      onBandEscalation(previousBand, band);
+      lastPatrolTick = tickCount;
+    } else if (bandRank[previousBand] >= bandRank.ALERT && bandRank[band] < bandRank.ALERT) {
+      world.sendMessage("§a[SENTINEL]§r  Threat reduced. Re-authentication available.");
+    }
+    lastNoiseBand = band;
+  } else if (lastNoiseBand === undefined) {
+    lastNoiseBand = band;
+    lastPatrolTick = tickCount;
+  }
+
+  const interval = getPatrolIntervalTicks(band);
+  if (interval > 0 && tickCount - lastPatrolTick >= interval) {
+    spawnSharedPatrols(getScheduledPatrolCount(band), band);
+    lastPatrolTick = tickCount;
+  }
+
+  for (const player of players) {
+    if (lockTicks > 1) {
       const remaining = Math.ceil((lockTicks - 1) / 20);
-      if (remaining > 0) {
-        player.onScreenDisplay.setActionBar(`§cTERMINAL LOCKED — ${remaining}s§r`);
-      } else {
-        // Lock just expired — fall through to noise bar below.
-        const noiseNow = getScore(player, OBJ.noise);
-        player.onScreenDisplay.setActionBar(`§7[noise]§r ${noiseBar(noiseNow)} §f${noiseNow}/100§r`);
-      }
+      player.onScreenDisplay.setActionBar(`§cTERMINAL LOCKED — ${remaining}s§r`);
     } else {
-      // Always show noise bar in the action bar when not locked.
-      const noiseNow = getScore(player, OBJ.noise);
-      player.onScreenDisplay.setActionBar(`§7[noise]§r ${noiseBar(noiseNow)} §f${noiseNow}/100§r`);
+      player.onScreenDisplay.setActionBar(
+        `§7[shared noise]§r ${noiseBar(noise)} §f${noise}/100 §7${band}§r`,
+      );
     }
+    checkDimensionEntry(player);
+  }
 
-    const noise = getScore(player, OBJ.noise);
-    const band = getNoiseBand(noise);
-    const key = player.name;
-    const previousBand = lastNoiseBand.get(key) ?? "CLEAN";
-    if (band !== previousBand) {
-      const bandRank = { CLEAN: 0, WARNING: 1, ALERT: 2, BREACH: 3, LOCKDOWN: 4 } as const;
-      if (bandRank[band] > bandRank[previousBand]) {
-        onBandEscalation(player, previousBand, band);
-      }
-      lastNoiseBand.set(key, band);
-    }
+  announceFlagGains();
 
-    const interval = getPatrolIntervalTicks(band);
-    if (interval > 0) {
-      const last = lastPatrolTick.get(key) ?? tickCount;
-      if (tickCount - last >= interval) {
-        const patrolCount = getScheduledPatrolCount(band);
-        spawnMisusePatrols(player, patrolCount, band);
-        lastPatrolTick.set(key, tickCount);
-      }
-    }
-
-    announceFlagGains(player);
-
-    // Sprinting noise — +1 every 2 ticks while sprinting (~0.5/tick average).
-    if (player.isSprinting && tickCount % 2 === 0) {
-      addNoise(player, 1);
-    }
+  // Shared sprinting pressure is capped so additional local players do not
+  // multiply the rate. Any sprinting player adds +1 every 2 ticks.
+  if (tickCount % 2 === 0 && players.some((player) => player.isSprinting)) {
+    addNoise(1);
   }
 
   // Noise decay — every 20 ticks (1 real second)
   if (tickCount % 20 === 0) {
-    for (const player of world.getAllPlayers()) {
-      ensurePlayerObjectivesRegistered(player);
-      const current = getScore(player, OBJ.noise);
-      const band = getNoiseBand(current);
-
-      if (current > 0) {
-        if (band === "LOCKDOWN") {
-          continue;
-        }
-
-        const decayStepTicks = band === "ALERT" ? 40 : 20;
-        if (tickCount % decayStepTicks !== 0) {
-          continue;
-        }
-
-        const decayed = Math.max(0, current - NOISE_DECAY_RATE);
-
-        setScore(player, OBJ.noise, decayed);
-
-        // Recover from lock pressure once noise is low enough.
-        if (decayed < 50 && getScore(player, OBJ.perm) === PERM_GUEST) {
-          player.sendMessage("§a[SENTINEL]§r  Threat reduced. Re-authentication available.");
-        }
+    const current = getScore(OBJ.noise);
+    const currentBand = getNoiseBand(current);
+    if (current > 0 && currentBand !== "LOCKDOWN") {
+      const decayStepTicks = currentBand === "ALERT" ? 40 : 20;
+      if (tickCount % decayStepTicks === 0) {
+        const idsMultiplier = getScore(OBJ.ids) >= 1 ? 2 : 1;
+        setScore(OBJ.noise, current - (NOISE_DECAY_RATE * idsMultiplier));
       }
     }
   }
@@ -1369,16 +1516,19 @@ world.afterEvents.playerJoin.subscribe((event) => {
 });
 
 function onPlayerJoin(player: Player): void {
-  ensurePlayerObjectivesRegistered(player);
+  ensureSharedStateRegistered();
   clearLegacyNoiseDisplay();
-  setPermission(player, PERM_GUEST);
-  setScore(player, OBJ.locked, 0);
-  lastNoiseBand.set(player.name, getNoiseBand(getScore(player, OBJ.noise)));
-  lastPatrolTick.set(player.name, tickCount);
+  lastDimension.set(player.name, player.dimension.id);
   player.setGameMode(GameMode.Adventure);
   player.onScreenDisplay.setActionBar("");
 
-  player.sendMessage("§7[HEXCORE]§r  Connection established. Proceed to the briefing terminal.");
+  if (getScore(OBJ.victory) >= 1) {
+    player.sendMessage("§a[HEXCORE]§r  System already compromised. Root access is active.");
+    player.onScreenDisplay.setTitle("§aMISSION COMPLETE");
+    return;
+  }
+
+  player.sendMessage("§7[HEXCORE]§r  Connection established. Shared session state loaded.");
   player.onScreenDisplay.setTitle("§eHEXCORE§r", {
     subtitle: "Security Evaluation — Session Active",
     fadeInDuration: 10,
@@ -1388,35 +1538,11 @@ function onPlayerJoin(player: Player): void {
 }
 
 // ---------------------------------------------------------------------------
-// Alarm and alert callbacks
-// ---------------------------------------------------------------------------
-
-function onAlert(player: Player): void {
-  player.sendMessage("§e[SENTINEL]§r  Elevated network activity detected. Reduce noise.");
-  player.playSound("note.pling", { pitch: 1.5, volume: 1.0 });
-}
-
-function onAlarm(player: Player): void {
-  player.sendMessage("§c[SENTINEL]§r  §lINTRUSION DETECTED.§r Countermeasures deployed.");
-  player.onScreenDisplay.setTitle("§c⚠ ALARM ⚠");
-
-  const alarms = getScore(player, OBJ.alarms);
-  setScore(player, OBJ.alarms, alarms + 1);
-
-  // Spawn a vex near the player as a mechanical "countermeasure"
-  const loc = player.location;
-  player.dimension.spawnEntity("minecraft:vex", {
-    x: loc.x + 2,
-    y: loc.y,
-    z: loc.z,
-  });
-}
-
-// ---------------------------------------------------------------------------
 // Boundary enforcement
 // ---------------------------------------------------------------------------
 
 function enforceBoundary(player: Player): void {
+  if (player.dimension.id !== "minecraft:overworld") return;
   const loc = player.location;
   const out =
     loc.x < BOUNDARY.minX ||
@@ -1425,7 +1551,10 @@ function enforceBoundary(player: Player): void {
     loc.z > BOUNDARY.maxZ;
 
   if (out) {
-    player.teleport({ x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ });
+    player.teleport(
+      { x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ },
+      { dimension: world.getDimension("overworld") },
+    );
     player.sendMessage("§c[SENTINEL]§r  Out of bounds. Returning to staging area.");
     player.onScreenDisplay.setTitle("§c⚠ OUT OF BOUNDS ⚠");
   }
@@ -1447,15 +1576,20 @@ const DEFENSE_MOB_IDS = new Set([
 world.afterEvents.entityHitEntity.subscribe((event) => {
   if (!(event.damagingEntity instanceof Player)) return;
   if (!DEFENSE_MOB_IDS.has(event.hitEntity.typeId)) return;
-  const player = event.damagingEntity as Player;
-  ensurePlayerObjectivesRegistered(player);
-  addNoise(player, 3);
+  ensureSharedStateRegistered();
+  addNoise(3);
 });
 
-// +5 noise when a player breaks a nullbyte:server_hardware block.
+const SERVER_HARDWARE_BLOCK_IDS = new Set([
+  "minecraft:observer",
+  "nullbyte:server_hardware",
+  "jig:ccomp:server_block",
+]);
+
+// +5 noise when a player breaks a block used as server hardware.
 world.afterEvents.playerBreakBlock.subscribe((event) => {
-  if (event.brokenBlockPermutation.type.id !== "nullbyte:server_hardware") return;
-  ensurePlayerObjectivesRegistered(event.player);
-  addNoise(event.player, 5);
+  if (!SERVER_HARDWARE_BLOCK_IDS.has(event.brokenBlockPermutation.type.id)) return;
+  ensureSharedStateRegistered();
+  addNoise(5);
   event.player.sendMessage("§c[SENTINEL]§r  Server hardware tampered. Noise +5.");
 });
