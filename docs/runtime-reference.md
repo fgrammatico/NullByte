@@ -1,4 +1,4 @@
-# NullByte — Runtime Reference
+# NullByte: Runtime Reference
 
 This is the single reference for how the behavior pack and shared state work. It consolidates the former `private/implementation_plan.md`, `private/planning/implementation-roadmap.md`, `private/content/narrative-spoilers.md`, `private/scoring/evaluation_criteria.md`, and `private/docs/minecraft_concepts.md`. Puzzle construction and flag wiring live in [`PUZZLE_GUIDE.md`](PUZZLE_GUIDE.md); testing commands and launch checks live in [`OPS.md`](OPS.md).
 
@@ -189,31 +189,31 @@ When individual scoring is added, it must not control progression, defenses, per
 
 ### Background
 
-HEXCORE is a rogue automated system that has taken over a corporate network and locked everyone out. A former developer known as GHOST went in, left evidence trails throughout the facility, and disappeared — but not before pointing investigators toward the way in.
+HEXCORE is a rogue automated system that has taken over a corporate network and locked everyone out. A former developer known as GHOST went in, left evidence trails throughout the facility, and disappeared, but not before pointing investigators toward the way in.
 
 Players breach the network together, follow GHOST's breadcrumbs, and gain root access to shut HEXCORE down. Chat is the portable terminal. Physical rooms, redstone puzzles, computer emails, NPC dialogue, and Script API commands form one connected path through the facility.
 
 ### Characters
 
-**ZERO** — HEXCORE's automated control system. Not a person. Its messages appear in system emails and terminal output. The voice is clipped and clinical. Sample lines:
+**ZERO**: HEXCORE's automated control system. Not a person. Its messages appear in system emails and terminal output. The voice is clipped and clinical. Sample lines:
 
 - "The credential is in the server room. Yes, someone left a backup there."
 - "SENTINEL is not your enemy. Noise is the problem. SENTINEL is the response."
 - "You found the key fragments. Now prove you know where each one belongs."
 
-**GHOST** — a former HEXCORE developer who went rogue. Left evidence throughout the facility to give investigators a fighting chance. The logs do not establish whether GHOST was a whistleblower, an accidental leak, or something else. Sample notes:
+**GHOST**: a former HEXCORE developer who went rogue. Left evidence throughout the facility to give investigators a fighting chance. The logs do not establish whether GHOST was a whistleblower, an accidental leak, or something else. Sample notes:
 
 - "default creds were never rotated. ticket 4471 is still open."
 - "g.host was disabled at 04:15. check what happened two minutes later."
 - "eth2 key was split across three media types. filters matter."
 
-**SENTINEL** — HEXCORE's automated defense system. Shared noise controls its responses: WARNING deploys patrols; ALERT locks the terminal and patches an active firewall bypass; BREACH revokes shared permission and returns players to the Overworld; LOCKDOWN freezes noise decay.
+**SENTINEL**: HEXCORE's automated defense system. Shared noise controls its responses: WARNING deploys patrols; ALERT locks the terminal and patches an active firewall bypass; BREACH revokes shared permission and returns players to the Overworld; LOCKDOWN freezes noise decay.
 
-**HR_BOT** — HEXCORE's intake AI. It thinks the players are candidates. GHOST may have had something to do with that.
+**HR_BOT**: HEXCORE's intake AI. It thinks the players are candidates. GHOST may have had something to do with that.
 
 ### The world
 
-- **Overworld (eth0)**: HEXCORE corporate campus — lobby, server room, security operations centre, and hardware lab. Players recover service credentials, correlate an unauthorized login, and configure a web-only firewall allowlist.
+- **Overworld (eth0)**: HEXCORE corporate campus: lobby, server room, security operations centre, and hardware lab. Players recover service credentials, correlate an unauthorized login, and configure a web-only firewall allowlist.
 - **Nether (eth1)**: restricted internal-services segment. Players decode the binary access byte `01000001`, escalate to admin with `nb:sudo`, and gather evidence for the End route request.
 - **End (eth2)**: air-gapped System Core. Active patrols from entry. Players assemble three encryption key fragments, complete the Port Knock sequence `1337, 22, 443`, and execute root.
 
@@ -232,7 +232,7 @@ ZERO's system output glitches on root. GHOST's final email confirms HEXCORE is o
 
 ### Tone
 
-NullByte is designed for mixed groups — kids, adults, and anyone curious about security concepts. Clues reward observation and correlation. Wrong answers carry consequences, but every puzzle provides enough in-world evidence to solve it without guessing. GHOST's notes keep things from getting too serious.
+NullByte is designed for mixed groups: kids, adults, and anyone curious about security concepts. Clues reward observation and correlation. Wrong answers carry consequences, but every puzzle provides enough in-world evidence to solve it without guessing. GHOST's notes keep things from getting too serious.
 
 ---
 

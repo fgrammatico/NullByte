@@ -1,4 +1,4 @@
-# Nether — eth1
+# Nether: eth1
 
 Internal network. Restricted access.
 

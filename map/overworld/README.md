@@ -1,4 +1,4 @@
-# Overworld — eth0
+# Overworld: eth0
 
 Surface network. Entry point for all candidates.
 

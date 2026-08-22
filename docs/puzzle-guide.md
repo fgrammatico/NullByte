@@ -1,4 +1,4 @@
-# NullByte — Puzzle Build Guide
+# NullByte: Puzzle Build Guide
 
 Step-by-step instructions to build all seven puzzles and wire their flags. Read top to bottom: each puzzle section is self-contained, with its signs, books, commands, and wiring listed in that section.
 
@@ -27,7 +27,7 @@ The flag numbers follow objective allocation, not build order. Root (win) requir
 
 ---
 
-## Step 0 — Prologue: cafeteria spawn + HR_BOT villager
+## Step 0: Prologue: cafeteria spawn + HR_BOT villager
 
 Awards no flag. Players spawn in the cafeteria, where a stationary villager named `HR_BOT` posts a chat greeting when a player walks close.
 
@@ -39,7 +39,7 @@ Run once in chat (replace `100 64 100` with the cafeteria coordinates; enable "S
 /summon villager HR_BOT 100 64 100
 ```
 
-This summons a villager named `HR_BOT`. No name-tag item is needed — the command sets the name.
+This summons a villager named `HR_BOT`. No name-tag item is needed; the command sets the name.
 
 ### 0.2 Keep HR_BOT in place
 
@@ -55,7 +55,7 @@ This teleports HR_BOT back to that spot every tick so it cannot wander. Skip thi
 
 Two command blocks and one comparator. HR_BOT says one chat line the moment a player enters a 5-block radius; it does not repeat until everyone leaves the radius and someone re-enters.
 
-**Block A — proximity detector (Repeating / Always Active / Unconditional):**
+**Block A: proximity detector (Repeating / Always Active / Unconditional):**
 
 ```
 /execute as @e[type=villager,name=HR_BOT,c=1] at @s run testfor @a[r=5,c=1]
@@ -77,7 +77,7 @@ Place Block A, the comparator, and Block B in a straight line on the same level:
 
 While a player is within 5 blocks, Block A succeeds and the comparator is ON. When nobody is close, Block A fails and the comparator is OFF.
 
-**Block B — the greeting (Impulse / Needs Redstone / Unconditional):**
+**Block B: the greeting (Impulse / Needs Redstone / Unconditional):**
 
 Place Block B immediately in front of the comparator so the comparator output powers it, with:
 
@@ -106,7 +106,7 @@ GHOST left evidence behind.
 - ZERO
 ```
 
-Optional GHOST counter-note near HR_BOT (book, sign, or email — mark it clearly as GHOST material):
+Optional GHOST counter-note near HR_BOT (book, sign, or email; mark it clearly as GHOST material):
 
 ```text
 Don't believe the evaluation.
@@ -136,7 +136,7 @@ Add arrows/signs pointing toward the server room, Security Operations Center, an
 
 ---
 
-## Step 1 — Credential Vault (Overworld → `nb_p01`)
+## Step 1: Credential Vault (Overworld -> `nb_p01`)
 
 **Teaches:** default credentials / credential handling.
 **Prerequisites:** none.
@@ -181,7 +181,7 @@ scoreboard players set NB_GLOBAL nb_p01 1
 
 ---
 
-## Step 2 — Log Analysis Wall (Overworld → `nb_p03`)
+## Step 2: Log Analysis Wall (Overworld -> `nb_p03`)
 
 **Teaches:** log analysis / anomaly detection.
 **Prerequisites:** none (recommended after Step 1).
@@ -261,7 +261,7 @@ scoreboard players add NB_GLOBAL nb_noise 5
 
 ---
 
-## Step 3 — Firewall Rules Console (Overworld → `nb_p05`)
+## Step 3: Firewall Rules Console (Overworld -> `nb_p05`)
 
 **Teaches:** firewall allowlists / port management.
 **Prerequisites:** none (recommended after Step 1).
@@ -332,7 +332,7 @@ scoreboard players set NB_GLOBAL nb_p05 1
 
 ---
 
-## Step 4 — Binary Access-Code Decoder (Nether → `nb_p04`)
+## Step 4: Binary Access-Code Decoder (Nether -> `nb_p04`)
 
 **Teaches:** binary place values / ASCII.
 **Prerequisites:** reach the Nether (firewall bypass `nb_fwall` set via `nb:exploit firewall`).
@@ -420,7 +420,7 @@ scoreboard players set NB_GLOBAL nb_p04 1
 
 ---
 
-## Step 5 — Route Access Request (Nether → `nb_p02`)
+## Step 5: Route Access Request (Nether -> `nb_p02`)
 
 **Teaches:** pretexting / evidence correlation across zones.
 **Prerequisites:** authenticated session (user) + firewall bypass active to reach the area.
@@ -448,7 +448,7 @@ You know the fields.
 
 ```text
 [ZERO]
-eth2 route — restricted.
+eth2 route: restricted.
 Authorised maintenance only.
 nb:request <ticket> <host> <window> <approver>
 ```
@@ -494,7 +494,7 @@ Wrong submission adds 6 shared noise (handled by script).
 
 ---
 
-## Step 6 — Encryption Key Assembly (End → `nb_p06`)
+## Step 6: Encryption Key Assembly (End -> `nb_p06`)
 
 **Teaches:** key management / input validation.
 **Prerequisites:** End route open (`nb_p02`).
@@ -551,7 +551,7 @@ This is the final exam.
 3. Feed the three latches into an AND gate.
 4. Trigger the flag only when all three are active.
 
-Do not use an unfiltered chest comparator — it cannot tell one fragment from another item.
+Do not use an unfiltered chest comparator; it cannot tell one fragment from another item.
 
 ### 6.3 Wire the flag
 
@@ -566,7 +566,7 @@ scoreboard players set NB_GLOBAL nb_p06 1
 
 ---
 
-## Step 7 — Port Knock Sequence (End → `nb_p07`)
+## Step 7: Port Knock Sequence (End -> `nb_p07`)
 
 **Teaches:** port knocking / service-to-port mapping.
 **Prerequisites:** End route open.
@@ -661,7 +661,7 @@ After `NB_GLOBAL nb_victory` becomes 1: HR_BOT uses the packaged `hr_victory` sc
 
 ---
 
-## Appendix A — Command block settings
+## Appendix A: Command block settings
 
 **Puzzle flag blocks (Steps 1–6):** Impulse / Unconditional / Needs Redstone / delay 0 / command WITHOUT a leading slash.
 
@@ -681,7 +681,7 @@ Troubleshooting:
 - Flag set but door stays closed → add the separate `setblock`/piston action; the flag never moves blocks.
 - Wrong player gets progress → replace selectors with `NB_GLOBAL`.
 
-## Appendix B — Manual flag testing (chat, cheats enabled)
+## Appendix B: Manual flag testing (chat, cheats enabled)
 
 ```
 /scoreboard players get NB_GLOBAL nb_p01
@@ -692,7 +692,7 @@ Troubleshooting:
 
 Reset only in a disposable test world, to 0, wait at least one game tick, then back to 1. Do not test after `nb_victory`.
 
-## Appendix C — NPC dialogue scenes (`release-inputs/runtime/dialogue/lobby-hr-bot.json`)
+## Appendix C: NPC dialogue scenes (`release-inputs/runtime/dialogue/lobby-hr-bot.json`)
 
 - `hr_intro`: "Welcome to HEXCORE. This facility uses one shared session. Progress, permission, noise, and defenses apply to every connected operator. Use nb:menu to inspect the portable terminal. All actions are logged. Begin when ready."
   - Button "I'm ready. Start the evaluation." → `/scoreboard players set NB_GLOBAL nb_start 1`
@@ -700,28 +700,27 @@ Reset only in a disposable test world, to 0, wait at least one game tick, then b
 - `hr_midgame`: "Evaluation in progress. Continue through the facility. You are being assessed."
 - `hr_victory`: "Evaluation complete. Shared root access is recorded. The facility is offline and all automated defenses have stopped."
 
-## Appendix D — Narrative rules
+## Appendix D: Narrative rules
 
 Introduce each character before relying on their name in a clue:
 
 | Character | First appearance | Role |
 |---|---|---|
-| HR_BOT | Cafeteria villager | Welcomes, explains shared session + portable terminal |
-| ZERO | Cafeteria briefing (CISO) | Evaluation director, authoritative instructions |
+| HR_BOT | Cafeteria villager | Welcomes players; explains shared session and portable terminal |
+| ZERO | Cafeteria briefing email | HEXCORE automated control system; sets the trap |
 | GHOST | First note (former developer) | Evidence trail; motive left unresolved |
 | SENTINEL | Warning placard | Automated defenses driven by shared noise |
-| DR4K3 | Nether route-authority nameplate | Verifies evidence-based request, controls eth2 route |
 
 Authorship conventions:
 
-- `ZERO // CISO // EVALUATION DIRECTOR` for formal instructions.
+- `ZERO // HEXCORE EVALUATION SYSTEM` for system output.
 - `GHOST // FORMER HEXCORE DEVELOPER` for the first note, then `GHOST` or `- G`.
 - `[SENTINEL]` for automated notices.
-- `HR_BOT` and `DR4K3 | SYS. ADMIN` on nameplates.
+- `HR_BOT` on lobby nameplate.
 
-GHOST's motive (whistleblower vs insider threat vs part of ZERO's test) must stay unresolved.
+GHOST's motive must stay unresolved.
 
-## Appendix E — Patrol markers and noise
+## Appendix E: Patrol markers and noise
 
 Place `chiseled stone bricks` as patrol spawn markers, 4–8 per major room/corridor. The script queries them within 64 blocks and falls back to a validated player-relative spot (solid floor + two air blocks).
 

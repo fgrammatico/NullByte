@@ -1,4 +1,4 @@
-# End — eth2
+# End: eth2
 
 Core system. Root vault.
 

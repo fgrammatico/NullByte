@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NULLBYTE — How It Works</title>
+<title>NULLBYTE: How It Works</title>
 <style>
   /* ── Reset & Base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,7 +64,7 @@
   .hero {
     background: linear-gradient(180deg, #0d1117 0%, var(--bg-deep) 100%);
     border-bottom: 1px solid var(--border);
-    padding: 48px 24px 40px;
+    padding: 64px 24px 52px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -94,32 +94,55 @@
     margin-bottom: 20px;
   }
   .hero h1 {
-    font-size: clamp(32px, 6vw, 56px);
+    font-size: clamp(40px, 8vw, 72px);
     font-weight: 700;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
     color: var(--text-primary);
     position: relative;
   }
   .hero h1 span { color: var(--green); }
   .hero-sub {
     color: var(--text-muted);
-    font-size: 16px;
-    margin-top: 12px;
-    max-width: 600px;
+    font-size: 17px;
+    margin-top: 16px;
+    max-width: 620px;
     margin-left: auto;
     margin-right: auto;
     position: relative;
   }
+  .hero-cta {
+    margin-top: 32px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: 'Courier New', monospace;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-primary { background: var(--green); color: #0a0c0f; border-color: var(--green); }
+  .btn-outline { background: transparent; border-color: var(--border); color: var(--text-muted); }
+  .btn-outline:hover { border-color: var(--green); color: var(--green); }
 
   /* ── Layout ── */
-  .wrapper { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+  .wrapper { max-width: 1000px; margin: 0 auto; padding: 0 24px 80px; }
 
   /* ── Section Headers ── */
   .section-header {
     display: flex;
     align-items: center;
     gap: 16px;
-    margin: 56px 0 28px;
+    margin: 64px 0 28px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
   }
@@ -165,16 +188,16 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .card-header .icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 18px;
     flex-shrink: 0;
   }
   .card-header h3 {
@@ -567,8 +590,16 @@
 <!-- ── HERO ── -->
 <div class="hero">
   <div class="hero-badge">MECHANICS REFERENCE</div>
-  <h1><span>NULLBYTE</span> <span style="font-size:0.5em;color:var(--text-dim);font-weight:400;letter-spacing:0">How It Works</span></h1>
-  <p class="hero-sub">Terminal commands, permission levels, noise model, and puzzle map. Useful for players who want to understand the systems, and for developers building or extending the world.</p>
+  <h1>NULL<span>BYTE</span></h1>
+  <p style="font-family:'Courier New',monospace;font-size:12px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-top:8px;position:relative">HOW IT WORKS</p>
+  <p class="hero-sub">Terminal commands, permission levels, noise model, and puzzle breakdown. Useful for players who want to understand the systems and developers building the world.</p>
+  <div class="hero-cta">
+    <a class="btn btn-outline" href="../index.html">← Back to Game</a>
+    <a class="btn btn-outline" href="#command-table">Commands</a>
+    <a class="btn btn-outline" href="#permission-tree">Permissions</a>
+    <a class="btn btn-outline" href="#noise-model">Noise</a>
+    <a class="btn btn-outline" href="#biome-puzzles">Puzzles</a>
+  </div>
 </div>
 
 <div class="wrapper">
@@ -609,7 +640,7 @@
 
 <div class="note">
   <div class="note-title">Chat is the Terminal</div>
-  There are no terminal blocks in the world. The Minecraft chat is the player's hacking device — always with them, always connected. Players type <code>/nb:&lt;command&gt;</code> directly. No <code>ActionForm</code> UI, no block-interact events. This simplifies both world building and the script significantly.
+  There are no terminal blocks in the world. The Minecraft chat is the player's hacking device, always with them, always connected. Players type <code>/nb:&lt;command&gt;</code> directly. No <code>ActionForm</code> UI, no block-interact events. This simplifies both world building and the script significantly.
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════════════ -->
@@ -803,7 +834,7 @@
 
 <div class="warning">
   <div class="note-title">Defense Counter-Play</div>
-  Exploits can be <strong>auto-patched</strong> by the defense system when noise reaches ALERT (50+). If you exploit the firewall and then trigger ALERT, the IR team patches it — your exploit becomes useless. Players must manage noise carefully or use stealth commands to stay below thresholds.
+  Exploits can be <strong>auto-patched</strong> by the defense system when noise reaches ALERT (50+). If you exploit the firewall and then trigger ALERT, the IR team patches it; your exploit becomes useless. Players must manage noise carefully or use stealth commands to stay below thresholds.
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════════════ -->
@@ -823,7 +854,7 @@
     <div class="perm-node-inner">
       <div class="perm-circle circle-guest">GUEST</div>
       <div class="perm-details">
-        <h4>Guest — Anonymous Session</h4>
+        <h4>Guest: Anonymous Session</h4>
         <p>Starting permission. Menu, identity, and status are always available. Recon and login appear after credentials are discovered.</p>
         <div class="unlocks">→ Always: menu, whoami, status · After P01: scan, ls, cat, login</div>
       </div>
@@ -834,7 +865,7 @@
     <div class="perm-node-inner">
       <div class="perm-circle circle-user">USER</div>
       <div class="perm-details">
-        <h4>User — Shared Authenticated Session</h4>
+        <h4>User: Shared Authenticated Session</h4>
         <p>Gained via <code>login admin hexc0re2049</code> after finding the credential vault. Unlocks exploit commands and stealth operations.</p>
         <div class="unlocks">→ Unlocks: exploit firewall, exploit ids, patch_covers, sudo</div>
       </div>
@@ -845,7 +876,7 @@
     <div class="perm-node-inner">
       <div class="perm-circle circle-admin">ADMIN</div>
       <div class="perm-details">
-        <h4>Admin — Shared Privileged Session</h4>
+        <h4>Admin: Shared Privileged Session</h4>
         <p>Gained via <code>sudo</code> after decoding the Nether access byte. Grants access to encryption exploits and the patrol kill command.</p>
         <div class="unlocks">→ Unlocks: exploit encryption, kill_patrol, exploit root (after encryption and Port Knock)</div>
       </div>
@@ -855,7 +886,7 @@
     <div class="perm-node-inner">
       <div class="perm-circle circle-root">ROOT</div>
       <div class="perm-details">
-        <h4>Root — Full System Access</h4>
+        <h4>Root: Full System Access</h4>
         <p>The win condition. Gained only by executing <code>exploit root</code> in the System Core after encryption is broken and Port Knock is complete. Victory persists and all defenses stop.</p>
         <div class="unlocks">→ Game Over (Victory): all defenses disabled, victory sequence plays</div>
       </div>
@@ -967,7 +998,7 @@
 
 <div class="note">
   <div class="note-title">Lore Framing</div>
-  In the game narrative, the chat is the player's portable hacking device — always on them, always connected. This framing means no physical terminal placement is required in the world.
+  In the game narrative, the chat is the player's portable hacking device, always on them, always connected. This framing means no physical terminal placement is required in the world.
 </div>
 
 <div class="warning">
@@ -980,7 +1011,7 @@
     <div class="terminal-dot dot-red"></div>
     <div class="terminal-dot dot-yel"></div>
     <div class="terminal-dot dot-grn"></div>
-    <span class="terminal-title">game chat — HEXCORE PORTABLE TERMINAL v0.0.24</span>
+    <span class="terminal-title">game chat: HEXCORE PORTABLE TERMINAL v0.0.24</span>
   </div>
   <div class="terminal-body">
 <span class="dim">  [PERM: GUEST] [NOISE: ░░░░░░░░░░ 0%] [THREAT: CLEAN]</span>
@@ -1049,7 +1080,7 @@
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Authentication — <span class="cmd-inline">login</span></h4>
+      <h4>Authentication: <span class="cmd-inline">login</span></h4>
       <p>Run <span class="cmd-inline">login admin hexc0re2049</span>. The script validates both values before shared permission changes from <strong>guest → user</strong>. A successful first login adds 10 noise.</p>
     </div>
   </div>
@@ -1059,7 +1090,7 @@
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Disable IDS (Optional but Recommended) — <span class="cmd-inline">exploit ids</span></h4>
+      <h4>Disable IDS (Optional but Recommended): <span class="cmd-inline">exploit ids</span></h4>
       <p>With <code>nb_p05</code>, run <span class="cmd-inline">exploit ids</span> before exploiting the firewall. This adds 12 noise and doubles passive noise decay for the rest of the session.</p>
     </div>
   </div>
@@ -1069,7 +1100,7 @@
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Firewall Bypass — <span class="cmd-inline">exploit firewall</span></h4>
+      <h4>Firewall Bypass: <span class="cmd-inline">exploit firewall</span></h4>
       <p>With <code>nb_p03</code> set and <code>nb_fwall = 0</code>, run <span class="cmd-inline">exploit firewall</span>. This adds 15 noise and sets <code>nb_fwall = 1</code>. If noise reaches ALERT while the firewall is bypassed, the defense system resets <code>nb_fwall</code> to 0.</p>
     </div>
   </div>
@@ -1079,7 +1110,7 @@
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Navigate to Nether — Restricted Services</h4>
+      <h4>Navigate to Nether: Restricted Services</h4>
       <p>With the firewall bypass active, travel through the Nether portal. Decode the recovered access byte at the <strong>Binary Access-Code Decoder</strong> to set <code>nb_p04</code>. The puzzle capture reduces shared noise by 3.</p>
     </div>
   </div>
@@ -1089,7 +1120,7 @@
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Privilege Escalation — <span class="cmd-inline">sudo</span></h4>
+      <h4>Privilege Escalation: <span class="cmd-inline">sudo</span></h4>
       <p>Run <span class="cmd-inline">sudo</span>. With <code>nb_p04</code> set, shared permission changes from <strong>user → admin</strong> and adds 25 noise. This exposes <span class="cmd-inline">exploit encryption</span> and <span class="cmd-inline">kill_patrol</span>.</p>
     </div>
   </div>
@@ -1133,7 +1164,7 @@
   <span class="tag">7 Puzzles Across 3 Areas</span>
 </div>
 
-<p class="desc">Each area contains puzzles that teach a cybersecurity concept. Puzzles use command blocks, redstone, NPC dialogue, or script events. Completion sets an immutable flag on <code>NB_GLOBAL</code>. The first capture of each flag reduces shared noise by 3.</p>
+<p class="desc">Each area contains puzzles that teach a cybersecurity concept. Puzzles use command blocks, redstone, NPC dialogue, or script events. Completion sets an immutable flag on <code>NB_GLOBAL</code>. The first capture of each flag reduces shared noise by 3. For zone atmosphere and story context, see <a href="../index.html#the-world" style="color:var(--green)">The World ↗</a> on the main page.</p>
 
 <div class="biome-grid">
   <!-- OVERWORLD -->
@@ -1194,10 +1225,10 @@
       <div class="puzzle-item">
         <span class="puzzle-num">5</span>
         <div>
-          <h5>Compromised Sysadmin NPC</h5>
-          <p>Build a credible pretext from evidence: ticket 4471, host ETH2-GW, and the 04:30 maintenance window. Wrong answers add noise. The correct response opens the End portal gate.</p>
+          <h5>Route Access Request</h5>
+          <p>Submit a terminal command with four evidence fields gathered across both dimensions: ticket 4471, host ETH2-GW, maintenance window 04:30, and approver ZERO. Wrong fields add noise. The correct command opens the End portal gate; no NPC required.</p>
           <div class="reward">→ Sets: <code>nb_p02</code> (opens End portal gate)</div>
-          <div class="concept">Concept: Social Engineering / Pretexting</div>
+          <div class="concept">Concept: Social Engineering / Evidence Correlation</div>
         </div>
       </div>
     </div>
@@ -1235,7 +1266,7 @@
 
 <div class="note">
   <div class="note-title">Map Design Notes</div>
-  Each area should have a distinct visual identity: Overworld, corporate server room; Nether, hot datacenter; End, cold vault. Place <code>chiseled_stone_bricks</code> as patrol spawn markers throughout each area. See <code>../build/puzzle-build-plan.md</code> for full puzzle instructions and command-block setups.
+  Each area should have a distinct visual identity: Overworld, corporate server room; Nether, hot datacenter; End, cold vault. Place <code>chiseled_stone_bricks</code> as patrol spawn markers throughout each area. See <code>puzzle-guide.md</code> for full puzzle instructions and command-block setups.
 </div>
 
 </div><!-- /wrapper -->

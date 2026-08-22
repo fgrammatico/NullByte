@@ -1,4 +1,4 @@
-# NullByte — Docs
+# NullByte: Docs
 
 Reference material for players, hosts, and developers.
 

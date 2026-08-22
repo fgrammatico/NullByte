@@ -8,9 +8,9 @@ The host installs the custom behavior and resource packs, opens the world to loc
 
 ## What it is
 
-NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. Players work together to break into HEXCORE — a rogue automated network — following evidence left by a vanished insider called GHOST, and gaining root access to shut the whole system down.
+NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. Players work together to break into HEXCORE, a rogue automated network, following evidence left by a vanished insider called GHOST, and gaining root access to shut the whole system down.
 
-The world teaches real security concepts (credential handling, log analysis, firewall rules, binary encoding, social engineering, port knocking) through exploration and puzzle-solving. It is designed to be fun for all ages — kids, parents, and anyone who has ever wanted to hack something legally.
+The world teaches real security concepts (credential handling, log analysis, firewall rules, binary encoding, social engineering, port knocking) through exploration and puzzle-solving. It is designed to be fun for all ages: kids, parents, and anyone who has ever wanted to hack something legally.
 
 ---
 
@@ -34,9 +34,9 @@ The experience is self-contained within the world. It does not rely on external 
 
 | Zone | Dimension | Network |
 |---|---|---|
-| Surface | Overworld | eth0 — surface network |
-| Internal | Nether | eth1 — internal network |
-| Core | End | eth2 — root vault |
+| Surface | Overworld | eth0: surface network |
+| Internal | Nether | eth1: internal network |
+| Core | End | eth2: root vault |
 
 ---
 
