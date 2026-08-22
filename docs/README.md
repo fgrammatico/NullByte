@@ -15,7 +15,7 @@ Reference material for players, hosts, and developers.
 
 | File | Contents |
 |---|---|
-| [puzzle-guide.md](puzzle-guide.md) | Step-by-step build instructions for all seven puzzles, flag wiring, and command block settings |
+| [build-guide.md](build-guide.md) | Complete build reference: all puzzles, sign and email text, command blocks, flag wiring, testing, and troubleshooting |
 | [runtime-reference.md](runtime-reference.md) | Scoreboard objectives, permissions, noise bands, commands, reset policy, acceptance tests, and narrative reference |
 | [../packs/docs/noise-reference.md](../packs/docs/noise-reference.md) | Factual noise and defense system reference sourced directly from `packs/src/main.ts` |
 
