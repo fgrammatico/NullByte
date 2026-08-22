@@ -26,6 +26,8 @@ Use different sign or book materials per author so players recognise the source 
 - NPC dialogue JSON: commands use a leading slash.
 - Port Knock (Puzzle 7) uses `scriptevent`, not a direct flag set.
 
+For chain command patterns after each flag (rewards, teleports, item grants, visual effects), see `FLAG_RELEASE_HOWTO.md`. That file covers the exact reward chain per puzzle. This guide focuses on the physical build, sign text, and email content.
+
 ---
 
 ## Flag map
@@ -46,32 +48,32 @@ Flag numbers follow objective allocation, not build order.
 
 ## Prologue: lobby setup
 
-Awards no flag. Sets `nb_start` via HR_BOT's `hr_intro` NPC scene.
+Awards no flag. Sets `nb_start` via HR_BOT1's `hr_intro` NPC scene.
 
-### HR_BOT villager
+### HR_BOT1 villager
 
 Summon (replace coordinates with actual cafeteria position):
 
 ```mcfunction
-/summon villager HR_BOT 100 64 100
+/summon villager HR_BOT1 100 64 100
 ```
 
 Hold in place (Repeating / Always Active):
 
 ```mcfunction
-/execute as @e[type=villager,name=HR_BOT,c=1] at @s run tp @s 100 64 100
+/execute as @e[type=villager,name=HR_BOT1,c=1] at @s run tp @s 100 64 100
 ```
 
 Proximity greeting circuit (Block A / comparator / Block B):
 
 Block A (Repeating / Always Active):
 ```mcfunction
-/execute as @e[type=villager,name=HR_BOT,c=1] at @s run testfor @a[r=5,c=1]
+/execute as @e[type=villager,name=HR_BOT1,c=1] at @s run testfor @a[r=5,c=1]
 ```
 
 Block B (Impulse / Needs Redstone, powered by comparator output):
 ```mcfunction
-/execute as @e[type=villager,name=HR_BOT,c=1] run say Welcome to HEXCORE. Type /nb:menu to open your terminal.
+/execute as @e[type=villager,name=HR_BOT1,c=1] run say Welcome to HEXCORE. Type /nb:menu to open your terminal.
 ```
 
 ### ZERO briefing email (lobby computer)
@@ -86,7 +88,7 @@ GHOST left evidence behind.
 - ZERO
 ```
 
-### GHOST counter-note (optional, near HR_BOT)
+### GHOST counter-note (lobby computer)
 
 Place as a book or sign in a spot that rewards curious players. Do not put it directly in the player path.
 
@@ -768,7 +770,7 @@ Nice work.
 ```
 
 After `nb_victory` becomes 1:
-- HR_BOT uses the `hr_victory` scene if players return to the lobby.
+- HR_BOT uses the `hr_victory` scene as players will return to the lobby automatically when the final boss is killed (code automation).
 - SENTINEL goes silent.
 - Leave GHOST's allegiance unresolved.
 
