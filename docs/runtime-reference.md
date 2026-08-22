@@ -103,7 +103,7 @@ In the runtime, ALERT or higher also increments `nb_alarms`, and reaching ALERT 
 - Breaking observer or supported server-hardware blocks (+5).
 - Entering the Nether before firewall bypass (+8).
 - Entering the End before the route is opened (+8).
-- Puzzle capture reward of −3 (defined in `PUZZLE_GUIDE.md` §14).
+- Puzzle capture reward of -3 (see `docs/build-guide.md` Appendix D).
 
 ### Command noise reference
 
@@ -146,7 +146,7 @@ Root requires all of:
 
 Victory sets `nb_victory`, grants root, clears terminal lockout, and stops noise, patrol, boundary, and revocation processing.
 
-The script-state victory is the authoritative win condition. World builders may connect fireworks or lighting to `nb_victory`, but must not create a second win condition (see `PUZZLE_GUIDE.md` §12).
+The script-state victory is the authoritative win condition. World builders may connect fireworks or lighting to `nb_victory`, but must not create a second win condition.
 
 ---
 
