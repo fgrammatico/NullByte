@@ -8,9 +8,9 @@ The host installs the custom behavior and resource packs, opens the world to loc
 
 ## What it is
 
-NullByte is a Minecraft Bedrock world designed as a gamified cybersecurity challenge. The world simulates a compromised network spread across three zones. Players explore, reason, and solve challenges using standard security thinking.
+NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. Players work together to break into HEXCORE — a rogue automated network — following evidence left by a vanished insider called GHOST, and gaining root access to shut the whole system down.
 
-The experience is self-contained. No external systems are involved.
+The world teaches real security concepts (credential handling, log analysis, firewall rules, binary encoding, social engineering, port knocking) through exploration and puzzle-solving. It is designed to be fun for all ages — kids, parents, and anyone who has ever wanted to hack something legally.
 
 ---
 
@@ -22,10 +22,11 @@ The world runs a custom behavior pack built with the Bedrock Script API (`@minec
 - One shared noise meter that triggers world-wide countermeasures
 - Game state via the Minecraft scoreboard system
 - NPC dialogue for in-world characters
+- Computer-delivered email briefings and attachments near each puzzle
 - Player boundary enforcement
 - Adventure mode enforcement on join
 
-Physical puzzle gates use redstone and command blocks. Progression, permission, noise, defenses, and victory are shared. Players can join, leave, die, or rejoin without resetting completed discoveries.
+The experience is self-contained within the world. It does not rely on external servers, but it does use the required commercial add-ons for the in-world computer system (email briefings and attachments) and equipment.
 
 ---
 

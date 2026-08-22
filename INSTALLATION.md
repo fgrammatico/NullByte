@@ -3,7 +3,7 @@
 ## Requirements
 
 - Minecraft Bedrock Edition on a device that can import `.mcaddon` and `.mcworld` files
-- The two separately purchased add-ons listed in [THIRD_PARTY_REQUIREMENTS.md](THIRD_PARTY_REQUIREMENTS.md)
+- The required commercial add-ons listed in [THIRD_PARTY_REQUIREMENTS.md](THIRD_PARTY_REQUIREMENTS.md): Computers add-on by Jigarbov Productions, Security Sandbox by Spectral Studio, and Ultimate Blasters 1.2
 - One host for the local multiplayer session
 
 ## Install the release
@@ -16,6 +16,8 @@
 6. Start the world on the host device and invite local multiplayer participants.
 
 The world stores progression in one shared state. Players may join, leave, die, or reconnect without clearing completed discoveries.
+
+In the current build, puzzle updates and hints are delivered as in-world emails through the computer add-on near the relevant puzzle. Physical notice boards and signage are not the intended delivery method.
 
 ## Updating
 
