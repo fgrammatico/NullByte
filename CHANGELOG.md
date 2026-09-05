@@ -2,6 +2,11 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.27
+
+- fix(terminal): lower nb:reset to GameDirectors so operators can run it (825b83f)
+- Edits on world (9f8bd55)
+
 ## 0.0.26
 
 - fix(release): name the packaged world after the version, not the source date (380957a)
