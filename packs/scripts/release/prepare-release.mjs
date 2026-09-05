@@ -190,7 +190,7 @@ export async function createReleaseArtifacts(repositoryRoot, version) {
   const outputDirectory = path.join(repositoryRoot, "release-output");
   const sourceWorldPath = await selectWorldFile(repositoryRoot);
   const mcaddonPath = path.join(outputDirectory, `NullByte-v${version}.mcaddon`);
-  const packagedWorldPath = path.join(outputDirectory, path.basename(sourceWorldPath));
+  const packagedWorldPath = path.join(outputDirectory, `NullByte-v${version}.mcworld`);
   const releaseZipPath = path.join(outputDirectory, `NullByte-v${version}.zip`);
 
   await rm(outputDirectory, { recursive: true, force: true });

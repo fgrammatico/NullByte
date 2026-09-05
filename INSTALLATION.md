@@ -11,7 +11,7 @@
 1. Extract the downloaded `NullByte-vX.Y.Z.zip` file.
 2. Import both required commercial add-ons into Minecraft Bedrock.
 3. Open `NullByte-vX.Y.Z.mcaddon` to import the NullByte behavior and resource packs.
-4. Open the dated `NullByte *.mcworld` file to import the world.
+4. Open the `NullByte-vX.Y.Z.mcworld` file to import the world.
 5. Open the imported world settings and confirm that the NullByte behavior pack, NullByte resource pack, and both required commercial add-ons are available.
 6. Start the world on the host device and invite local multiplayer participants.
 
