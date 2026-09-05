@@ -585,7 +585,7 @@ function registerCommands(registry: CustomCommandRegistry): void {
     {
       name: "nb:reset",
       description: "Operator only. Clear all shared progress so the game can be replayed from the start.",
-      permissionLevel: CommandPermissionLevel.Admin,
+      permissionLevel: CommandPermissionLevel.GameDirectors,
       cheatsRequired: true,
     },
     handleReset,

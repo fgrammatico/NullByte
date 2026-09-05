@@ -1395,6 +1395,8 @@ Operator only. Clears all shared progress so the game can be replayed from the s
 
 Requires cheats and operator permission. A non-operator gets `Denied. Operator permission required.` It works even when the terminal is locked or `nb_victory` is already 1, because those are exactly the states you need to get out of.
 
+If you get `incorrect permission level for command`, you are not an operator in that world. Grant yourself operator in the player list, or run it from the host account.
+
 What it clears:
 
 - Every objective on `NB_GLOBAL` back to 0, including flags, permission, noise, alarms, lock, and exploit state.
