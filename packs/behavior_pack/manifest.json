@@ -1,25 +1,25 @@
 {
   "format_version": 2,
   "header": {
-    "name": "NullByte Behavior v0.0.25",
-    "description": "HEXCORE Evaluation Platform v0.0.25 (Behavior Pack)",
+    "name": "NullByte Behavior v0.0.26",
+    "description": "HEXCORE Evaluation Platform v0.0.26 (Behavior Pack)",
     "uuid": "8e584b65-0fec-485a-85df-29fdc902081c",
     "pack_scope": "world",
-    "version": [0, 0, 25],
+    "version": [0, 0, 26],
     "min_engine_version": [1, 21, 120]
   },
   "modules": [
     {
       "type": "data",
       "uuid": "d7b8f5af-c8f0-41ff-a299-8dc1f4e5038b",
-      "version": [0, 0, 25]
+      "version": [0, 0, 26]
     },
     {
       "type": "script",
       "language": "javascript",
       "uuid": "995fe487-eabe-4684-8229-3e05c6298f5c",
       "entry": "scripts/main.js",
-      "version": [0, 0, 25]
+      "version": [0, 0, 26]
     }
   ],
   "metadata": {
@@ -33,7 +33,7 @@
     },
     {
       "uuid": "e41e77fd-03bf-4cb1-9437-2418792fe66d",
-      "version": [0, 0, 25]
+      "version": [0, 0, 26]
     }
   ]
 }
