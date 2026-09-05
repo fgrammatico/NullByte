@@ -580,6 +580,16 @@ function registerCommands(registry: CustomCommandRegistry): void {
     },
     handleKillPatrol,
   );
+
+  registry.registerCommand(
+    {
+      name: "nb:reset",
+      description: "Operator only. Clear all shared progress so the game can be replayed from the start.",
+      permissionLevel: CommandPermissionLevel.Admin,
+      cheatsRequired: true,
+    },
+    handleReset,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -645,6 +655,9 @@ function dispatchChatCommand(sender: Player, rawMessage: string): boolean {
       return true;
     case "nb:kill_patrol":
       handleKillPatrol(origin);
+      return true;
+    case "nb:reset":
+      handleReset(origin);
       return true;
     default:
       applyCommandPenalty(sender, "Unknown command. Type nb:menu.", 2);
@@ -898,6 +911,64 @@ function handleStatus(origin: CustomCommandOrigin): CustomCommandResult {
       `§7[status]§r  Challenges: §a${solved}/7§r  Noise: ${noiseBar(noise)} ${noise}  Alarms: §c${alarms}§r`,
     );
   });
+}
+
+function isOperator(player: Player): boolean {
+  try {
+    return player.commandPermissionLevel >= CommandPermissionLevel.GameDirectors;
+  } catch {
+    return false;
+  }
+}
+
+// Deliberately bypasses runDeferredPlayerCommand: reset must still work when the
+// terminal is locked or victory has already been recorded.
+function handleReset(origin: CustomCommandOrigin): CustomCommandResult {
+  const player = getPlayer(origin);
+  if (!player) return { status: CustomCommandStatus.Failure };
+
+  system.runTimeout(() => {
+    if (!isOperator(player)) {
+      player.sendMessage("§c[reset]§r  Denied. Operator permission required.");
+      return;
+    }
+
+    resetSharedState();
+
+    player.sendMessage(
+      [
+        "§a[reset]§r  Shared state cleared. All objectives are back to 0.",
+        "§7Physical state does NOT reset. Fix these by hand:§r",
+        "  §8- gates opened with setblock: replace the block§r",
+        "  §8- latched hopper filters in the End vault§r",
+        "  §8- keycards already in player inventories§r",
+        "  §8- NPC scenes: /dialogue change @e[tag=soc_triage_npc] soc_triage_locked§r",
+      ].join("\n"),
+    );
+    world.sendMessage("§e[SYSTEM]§r  Session reset by operator. All progress cleared.");
+  }, 1);
+
+  return { status: CustomCommandStatus.Success };
+}
+
+function resetSharedState(): void {
+  ensureObjectivesRegistered();
+
+  // Wipes builder-created objectives too (nb_sshlog, nb_fwall_tp, nb_p02_tp).
+  try {
+    world.getDimension("overworld").runCommand(`scoreboard players reset ${GLOBAL_PARTICIPANT}`);
+  } catch {
+    // Ignore; the explicit writes below still clear every known objective.
+  }
+
+  for (const key of ALL_OBJECTIVES) {
+    setScore(key, 0);
+  }
+
+  lastNoiseBand = undefined;
+  lastFlagState.clear();
+  lastDimension.clear();
+  lastChatDispatch.clear();
 }
 
 function handleLogin(origin: CustomCommandOrigin, ...args: unknown[]): CustomCommandResult {

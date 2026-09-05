@@ -8,7 +8,7 @@ The host installs the custom behavior and resource packs, opens the world to loc
 
 ## What it is
 
-NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. Players work together to break into HEXCORE, a rogue automated network, following evidence left by a vanished insider called GHOST, and gaining root access to shut the whole system down.
+NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. HEXCORE is a technology company that sells security systems and is much worse at using them. Players follow the trail left by a terminated employee called GHOST and gain root access to shut the whole thing down.
 
 The world teaches real security concepts (credential handling, log analysis, firewall rules, binary encoding, social engineering, port knocking) through exploration and puzzle-solving. It is designed to be fun for all ages: kids, parents, and anyone who has ever wanted to hack something legally.
 
@@ -43,20 +43,20 @@ The experience is self-contained within the world. It does not rely on external 
 ## Repository structure
 
 ```
-story/           - spoiler-free narrative and lore overviews
+story/           - narrative reference and lore
 map/             - zone descriptions
   overworld/
   nether/
   end/
 packs/           - public behavior and resource pack structure
   src/           - TypeScript runtime and release-config example
-  behavior_pack/ - behavior-pack manifest and public assets
+  behavior_pack/ - behavior-pack manifest, NPC dialogue scenes, public assets
   resource_pack/ - resource-pack manifest and public assets
-release-inputs/  - tracked runtime, dialogue, and source-world release inputs
+release-inputs/  - tracked runtime config and source-world release inputs
 scoring/         - evaluation overview
 ```
 
-Builder plans and scoring details remain private. Runtime configuration, packaged dialogue, and the source world are tracked because GitHub-hosted release jobs require them.
+Scoring details remain private. Runtime configuration and the source world are tracked because GitHub-hosted release jobs require them.
 
 ---
 

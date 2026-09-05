@@ -22,7 +22,7 @@ Reference material for players, hosts, and developers.
 ## Puzzle progression summary
 
 ```
-Lobby (HR_BOT → nb_start)
+Lobby (HR_BOT chat greeting)
   └─ P1 nb_p01 → login (user)
        ├─ P2 nb_p03 → exploit firewall (nb_fwall) → Nether
        └─ P3 nb_p05 → exploit ids (nb_ids)

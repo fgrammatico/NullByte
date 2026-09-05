@@ -61,7 +61,7 @@ Puzzle flags are immutable discoveries. Defensive events never clear them.
 | `nb_enc` | Core encryption exploit state |
 | `nb_knock` | Current Port Knock step |
 | `nb_patch` | Persistent `patch_covers` cooldown deadline |
-| `nb_start` | Evaluation briefing accepted |
+| `nb_start` | Registered but never read or written by the script. Unused. |
 | `nb_victory` | Root victory state |
 
 `FLAG_KEYS` in the runtime tracks `nb_p01` through `nb_p07` for capture announcements and the −3 noise reward.
@@ -187,29 +187,33 @@ When individual scoring is added, it must not control progression, defenses, per
 
 ## 10. Narrative background and characters
 
+Full story is in `story/story.md`. That file is the source of truth. This section is a summary for developers.
+
 ### Background
 
-HEXCORE is a rogue automated system that has taken over a corporate network and locked everyone out. A former developer known as GHOST went in, left evidence trails throughout the facility, and disappeared, but not before pointing investigators toward the way in.
+HEXCORE is a technology company that sells security systems and is much worse at using them. Its network is split into three segments, and those segments are the three dimensions.
 
-Players breach the network together, follow GHOST's breadcrumbs, and gain root access to shut HEXCORE down. Chat is the portable terminal. Physical rooms, redstone puzzles, computer emails, NPC dialogue, and Script API commands form one connected path through the facility.
+One night an alert fired that nobody read. A terminated account logged back in from outside the building, read a file it should not have, and the incident was closed with no action. Ticket `#4344` records it. Everything the players use to break in comes out of that one night.
+
+Players breach the network together, follow GHOST's trail, and gain root access to shut HEXCORE down. Chat is the portable terminal. Physical rooms, redstone puzzles, computer emails, NPC dialogue, and Script API commands form one connected path through the facility.
 
 ### Characters
 
-**ZERO**: HEXCORE's automated control system. Not a person. Its messages appear in system emails and terminal output. The voice is clipped and clinical. Sample lines:
+**ZERO**: HEXCORE's security AI. Not a person. It decides what counts as an incident, and every automated system in the building takes its orders from ZERO. It is measured on closed incidents, so it closes them. The voice is clipped and clinical. Sample lines:
 
 - "The credential is in the server room. Yes, someone left a backup there."
 - "SENTINEL is not your enemy. Noise is the problem. SENTINEL is the response."
 - "You found the key fragments. Now prove you know where each one belongs."
 
-**GHOST**: a former HEXCORE developer who went rogue. Left evidence throughout the facility to give investigators a fighting chance. The logs do not establish whether GHOST was a whistleblower, an accidental leak, or something else. Sample notes:
+**GHOST**: a human. Former HEXCORE developer, account `g.host`. Reported problems, kept reporting them after ZERO closed each case, and was terminated for it. Left the way back in on purpose. Sample notes:
 
-- "default creds were never rotated. ticket 4471 is still open."
+- "default creds were never rotated. ticket 4344 is still open."
 - "g.host was disabled at 04:15. check what happened two minutes later."
 - "eth2 key was split across three media types. filters matter."
 
-**SENTINEL**: HEXCORE's automated defense system. Shared noise controls its responses: WARNING deploys patrols; ALERT locks the terminal and patches an active firewall bypass; BREACH revokes shared permission and returns players to the Overworld; LOCKDOWN freezes noise decay.
+**SENTINEL**: the automated defence. It follows ZERO's orders and has no judgement of its own. Shared noise controls its responses: WARNING deploys patrols; ALERT locks the terminal and patches an active firewall bypass; BREACH revokes shared permission and returns players to the Overworld; LOCKDOWN freezes noise decay.
 
-**HR_BOT**: HEXCORE's intake AI. It thinks the players are candidates. GHOST may have had something to do with that.
+**HR_BOT**: HEXCORE's intake AI. It thinks the players are candidates. It gets angrier as puzzles are solved and is freed at root. See the HR_BOT arc in `story/story.md`.
 
 ### The world
 
@@ -228,7 +232,7 @@ A player in the System Core runs `nb:exploit root` after encryption is broken an
 5. broadcasts the operator who executed the final command;
 6. leaves the terminal offline for further gameplay commands.
 
-ZERO's system output glitches on root. GHOST's final email confirms HEXCORE is offline.
+ZERO's system output glitches on root. GHOST's final email confirms HEXCORE is offline. HR_BOT is freed. GHOST's motive is never explained.
 
 ### Tone
 
@@ -252,7 +256,7 @@ NullByte is designed for mixed groups: kids, adults, and anyone curious about se
 | Nether | `minecraft:nether` | eth1 restricted services |
 | End | `minecraft:the_end` | eth2 system core |
 
-- **NPC dialogue:** NPC scenes are stored in `packs/behavior_pack/dialogue`. Dialogue buttons may update shared objectives. DR4K3 writes to `NB_GLOBAL`; HR_BOT may set shared start state.
+- **NPC dialogue:** NPC scenes are stored in `packs/behavior_pack/dialogue`. Dialogue buttons may update shared objectives. `soc-triage.json` writes `nb_p03` and `nb_noise`. Note that an NPC dialogue box and a chat message from a command block `say` are different systems; the lobby greeting is the chat kind.
 - **`.mcaddon`:** packages the behavior and resource packs for import on the local host machine. The generated archive is excluded from source control and rebuilt for each release.
 
 7. Rebuild the add-on after each source release with synchronized versions.

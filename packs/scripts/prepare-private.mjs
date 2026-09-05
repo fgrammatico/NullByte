@@ -5,30 +5,11 @@ import { fileURLToPath } from "node:url";
 const packsDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryDirectory = resolve(packsDirectory, "..");
 
+// NPC dialogue scenes are tracked directly in packs/behavior_pack/dialogue and are not copied here.
 const privateFiles = [
   {
     source: resolve(repositoryDirectory, "release-inputs/runtime/game-config.ts"),
     destination: resolve(packsDirectory, "src/game-config.ts"),
-  },
-  {
-    source: resolve(
-      repositoryDirectory,
-      "release-inputs/runtime/dialogue/compromised-sysadmin.json",
-    ),
-    destination: resolve(
-      packsDirectory,
-      "behavior_pack/dialogue/private-compromised-sysadmin.json",
-    ),
-  },
-  {
-    source: resolve(
-      repositoryDirectory,
-      "release-inputs/runtime/dialogue/lobby-hr-bot.json",
-    ),
-    destination: resolve(
-      packsDirectory,
-      "behavior_pack/dialogue/private-lobby-hr-bot.json",
-    ),
   },
 ];
 

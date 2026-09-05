@@ -1071,7 +1071,7 @@
     </div>
     <div class="chain-content">
       <h4>Reconnaissance</h4>
-      <p>Run <span class="cmd-inline">ls</span>, <span class="cmd-inline">cat auth.log</span>, <span class="cmd-inline">cat config</span>, and <span class="cmd-inline">scan</span>. Solve the <strong>Log Analysis Wall</strong> (<code>nb_p03</code>) and <strong>Firewall Rules Console</strong> (<code>nb_p05</code>). Each first flag capture reduces shared noise by 3.</p>
+      <p>Run <span class="cmd-inline">ls</span>, <span class="cmd-inline">cat auth.log</span>, <span class="cmd-inline">cat config</span>, and <span class="cmd-inline">scan</span>. Solve the <strong>SSH Log Triage</strong> (<code>nb_p03</code>) and <strong>Firewall Rules Console</strong> (<code>nb_p05</code>). Each first flag capture reduces shared noise by 3.</p>
     </div>
   </div>
   <div class="chain-step">
@@ -1131,7 +1131,7 @@
     </div>
     <div class="chain-content">
       <h4>Lateral Movement &amp; End Access</h4>
-      <p>Correlate ticket <code>4471</code>, host <code>ETH2-GW</code>, and the <code>04:30</code> maintenance window. Use that evidence with the Compromised Sysadmin NPC to set <code>nb_p02</code> and open the End portal gate.</p>
+      <p>Correlate ticket <code>4344</code>, host <code>ETH2-GW</code>, and the <code>04:30</code> maintenance window. Use that evidence to set <code>nb_p02</code> and open the End portal gate.</p>
     </div>
   </div>
   <div class="chain-step">
@@ -1187,8 +1187,8 @@
       <div class="puzzle-item">
         <span class="puzzle-num">2</span>
         <div>
-          <h5>Log Analysis Wall</h5>
-          <p>Correlate seven log entries. Report the first event proving that a disabled account was reused from an external address. Trap buttons on wrong lines add noise.</p>
+          <h5>SSH Log Triage</h5>
+          <p>Read the SSH log from the night of the incident. Report the first event proving that a disabled account was reused from an external address. Wrong reports add noise.</p>
           <div class="reward">→ Sets: <code>nb_p03</code> (unlocks nb:exploit firewall)</div>
           <div class="concept">Concept: Log Analysis / Anomaly Detection</div>
         </div>
@@ -1226,7 +1226,7 @@
         <span class="puzzle-num">5</span>
         <div>
           <h5>Route Access Request</h5>
-          <p>Submit a terminal command with four evidence fields gathered across both dimensions: ticket 4471, host ETH2-GW, maintenance window 04:30, and approver ZERO. Wrong fields add noise. The correct command opens the End portal gate; no NPC required.</p>
+          <p>Submit four evidence fields gathered across both dimensions: ticket 4344, host ETH2-GW, maintenance window 04:30, and approver ZERO. Wrong fields add noise. The correct submission opens the End portal gate.</p>
           <div class="reward">→ Sets: <code>nb_p02</code> (opens End portal gate)</div>
           <div class="concept">Concept: Social Engineering / Evidence Correlation</div>
         </div>
