@@ -1,11 +1,12 @@
 name: Release
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types:
-      - closed
+    paths:
+      - 'packs/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,11 +17,10 @@ concurrency:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out merged main branch
+      - name: Check out main branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -49,18 +49,6 @@ jobs:
       - name: Publish release
         working-directory: packs
         env:
-          BOOTSTRAP_VERSION: 0.0.24
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if git rev-parse --verify --quiet "refs/tags/v${BOOTSTRAP_VERSION}"; then
-            npm run release
-          else
-            SOURCE_VERSION=$(node --print "require('./package.json').version")
-            if [[ "${SOURCE_VERSION}" != "${BOOTSTRAP_VERSION}" ]]; then
-              echo "Bootstrap requires source version ${BOOTSTRAP_VERSION}; found ${SOURCE_VERSION}." >&2
-              exit 1
-            fi
-            npm run release:prepare -- "${BOOTSTRAP_VERSION}"
-            gh release create "v${BOOTSTRAP_VERSION}" "../release-output/NullByte-v${BOOTSTRAP_VERSION}.zip" --target main --title "NullByte v${BOOTSTRAP_VERSION}" --notes-file ../CHANGELOG.md
-          fi
+        run: npm run release

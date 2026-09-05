@@ -5,6 +5,7 @@ import {
   findReleaseType,
   formatReleaseNotes,
   incrementVersion,
+  resolveReleaseType,
 } from "../scripts/release/release-policy.mjs";
 import {
   parseGitLog,
@@ -15,6 +16,15 @@ test("returns no release when commits have no bracket marker", async () => {
   const commits = [{ message: "docs: update player guide" }];
   assert.equal(findReleaseType(commits), null);
   assert.equal(await analyzeCommits({}, { commits }), null);
+});
+
+test("defaults to a patch release when no marker is present", () => {
+  assert.equal(resolveReleaseType([{ message: "fix: tweak the terminal" }]), "patch");
+});
+
+test("a marker still overrides the patch default", () => {
+  assert.equal(resolveReleaseType([{ message: "feat: new command [minor]" }]), "minor");
+  assert.equal(resolveReleaseType([{ message: "change: rework [breaking]" }]), "major");
 });
 
 test("matches release markers without case sensitivity", () => {

@@ -38,6 +38,11 @@ export function findReleaseType(commits) {
   return RELEASE_TYPES[highestLevel] ?? null;
 }
 
+// Any change under packs/ releases. Markers only raise the bump above patch.
+export function resolveReleaseType(commits, fallback = "patch") {
+  return findReleaseType(commits) ?? fallback;
+}
+
 export function incrementVersion(currentVersion, releaseType) {
   const match = SEMANTIC_VERSION_PATTERN.exec(currentVersion);
   if (!match) {

@@ -4,9 +4,9 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
-  findReleaseType,
   formatReleaseNotes,
   incrementVersion,
+  resolveReleaseType,
 } from "./release-policy.mjs";
 import { prepareRelease } from "./prepare-release.mjs";
 
@@ -153,12 +153,12 @@ export async function publishRelease(repositoryRoot = getRepositoryRoot()) {
   }
 
   const commits = await getCommitsSinceTag(repositoryRoot, latestTag);
-  const releaseType = findReleaseType(commits);
-  if (!releaseType) {
-    console.log(`No release marker found in ${commits.length} commit(s); no release published.`);
+  if (commits.length === 0) {
+    console.log("No commits since the latest tag; no release published.");
     return null;
   }
 
+  const releaseType = resolveReleaseType(commits);
   const nextVersion = incrementVersion(currentVersion, releaseType);
   const releaseNotes = formatReleaseNotes(commits);
   await updateChangelog(repositoryRoot, nextVersion, releaseNotes);
