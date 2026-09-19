@@ -233,3 +233,6 @@ config.local.yaml
 config.local.yml
 .history
 *.code-workspace
+.DS_Store
+/private
+.history/
