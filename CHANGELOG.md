@@ -2,6 +2,11 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.28
+
+- docs(docs): align mechanics.html and reshape End to boss-first across docs[patch] (783b827)
+- chore(gitignore): Added mac files exclusion (24bdfa2)
+
 ## 0.0.27
 
 - fix(terminal): lower nb:reset to GameDirectors so operators can run it (825b83f)
