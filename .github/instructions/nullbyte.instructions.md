@@ -4,6 +4,20 @@ These rules apply to every change that generates a new NullByte `.mcaddon` or Gi
 
 Audience, theme, and other project rules are in `NULLBYTE_PROMPT_INSTRUCTIONS.md`. This file covers packaging and releases only.
 
+## Build and package the behavior pack
+
+Run these from the repo's `packs/` directory. From anywhere in the repo: `cd "$(git rev-parse --show-toplevel)/packs"`.
+
+After any change to `packs/src/main.ts`, rebuild before importing or testing:
+
+- `npm run build` compiles the TypeScript to `packs/behavior_pack/scripts/main.js`. Never edit the generated JS by hand.
+- `npm run mcaddon` packages `packs/behavior_pack/` and `packs/resource_pack/` into `packs/NullByte.mcaddon` for local import and testing. Delete the old file first with `rm -f NullByte.mcaddon` so no stale entries remain.
+- `npm test` runs the release tests.
+
+`npm run build` on its own updates the behavior pack script but does NOT produce an importable add-on. Importing into Minecraft needs the `.mcaddon`, so run `npm run mcaddon` as well. If dependencies are missing (`tsc: command not found`), run `npm install` in `packs/` first.
+
+This local `.mcaddon` is for testing only. The official release ZIP (with the version bump and the world) is built by the release scripts described in the rest of this file.
+
 ## Version selection
 
 - Merged pull requests release only when at least one commit subject or body contains a case-insensitive bracket marker:

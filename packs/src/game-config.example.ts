@@ -7,7 +7,7 @@ export const GAME_CONFIG = {
     startTick: "RELEASE_VALUE",
     patchReady: "RELEASE_VALUE",
     fwall: "RELEASE_VALUE",
-    ids: "RELEASE_VALUE",
+    ids: "RELEASE_VALUE", // unused since the End redesign (IDS puzzle removed); registered but unread, prune later
     enc: "RELEASE_VALUE",
     victory: "RELEASE_VALUE",
     knock: "RELEASE_VALUE",
@@ -15,8 +15,8 @@ export const GAME_CONFIG = {
     p02: "RELEASE_VALUE",
     p03: "RELEASE_VALUE",
     p04: "RELEASE_VALUE",
-    p05: "RELEASE_VALUE",
-    p06: "RELEASE_VALUE",
+    p05: "RELEASE_VALUE", // unused since the End redesign (Firewall Console removed); registered but unread, prune later
+    p06: "RELEASE_VALUE", // unused since the End redesign (Key Assembly removed); registered but unread, prune later
     p07: "RELEASE_VALUE",
   },
   globalParticipant: "RELEASE_VALUE",

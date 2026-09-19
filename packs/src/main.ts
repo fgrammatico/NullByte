@@ -53,15 +53,15 @@ const PERM_ROOT = 3;
 const LOGIN_USERNAME = GAME_CONFIG.login.username;
 const LOGIN_PASSWORD = GAME_CONFIG.login.password;
 
-// Progress flags (p01..p07) and the context shown when each one is captured,
-// whether it is unlocked by gameplay or set manually via /scoreboard.
+// Progress flags tracked for capture announcements and the -3 noise reward.
+// p05 (Firewall Console) and p06 (Encryption Key Assembly) were removed in the
+// End redesign. Their objectives still exist in game-config (registered but
+// unread) and are pruned later, so they are intentionally not tracked here.
 const FLAG_KEYS = [
   OBJ.p01,
   OBJ.p02,
   OBJ.p03,
   OBJ.p04,
-  OBJ.p05,
-  OBJ.p06,
   OBJ.p07,
 ] as const;
 
@@ -70,8 +70,6 @@ const FLAG_META: Record<string, { name: string; hint: string }> = {
   [OBJ.p02]: { name: "Core Route", hint: "The End gateway route is available." },
   [OBJ.p03]: { name: "Exploit Token", hint: "nb:exploit firewall is now available." },
   [OBJ.p04]: { name: "Sudo Secret", hint: "nb:sudo is now available." },
-  [OBJ.p05]: { name: "IDS Bypass Module", hint: "nb:exploit ids is now available." },
-  [OBJ.p06]: { name: "Encryption Key", hint: "nb:exploit encryption is now available." },
   [OBJ.p07]: { name: "Port Knock", hint: "The root endpoint is open." },
 };
 
@@ -793,10 +791,8 @@ function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
     const hasCoreRoute    = getScore(OBJ.p02) >= 1;
     const hasExploitToken = getScore(OBJ.p03) >= 1;
     const hasSudoSecret   = getScore(OBJ.p04) >= 1;
-    const hasIdsBypass    = getScore(OBJ.p05) >= 1;
-    const hasEncKey       = getScore(OBJ.p06) >= 1;
     const hasPortKnock    = getScore(OBJ.p07) >= 1;
-    const encryptionBroken = getScore(OBJ.enc) >= 1;
+    const coreDefenseDown = getScore(OBJ.enc) >= 1; // nb_enc is set by the End boss, not a command
     const isUser  = getScore(OBJ.perm) >= PERM_USER;
     const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
 
@@ -823,12 +819,10 @@ function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
     }
 
     // Exploit chain — show each sub-target only when its token is present
-    if (hasExploitToken || hasIdsBypass || hasEncKey || (hasPortKnock && encryptionBroken)) {
+    if (hasExploitToken || (hasPortKnock && coreDefenseDown)) {
       lines.push("  §fnb:exploit§r   — exploit chain:");
       if (hasExploitToken) lines.push("    §8›§r firewall" + (isUser ? "" : " §8[user required]§r"));
-      if (hasIdsBypass)    lines.push("    §8›§r ids"      + (isUser ? "" : " §8[user required]§r"));
-      if (hasEncKey)       lines.push("    §8›§r encryption" + (isAdmin ? "" : " §8[admin required]§r"));
-      if (hasPortKnock && encryptionBroken) {
+      if (hasPortKnock && coreDefenseDown) {
         lines.push("    §8›§r root §8[End dimension required]§r" + (isAdmin ? "" : " §8[admin required]§r"));
       }
     }
@@ -846,8 +840,6 @@ function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
       `p02=${hasCoreRoute ? 1 : 0}`,
       `p03=${hasExploitToken ? 1 : 0}`,
       `p04=${hasSudoSecret ? 1 : 0}`,
-      `p05=${hasIdsBypass ? 1 : 0}`,
-      `p06=${hasEncKey ? 1 : 0}`,
       `p07=${hasPortKnock ? 1 : 0}`,
     ].join("  ");
     lines.push(`§7Flags:§r  ${flagSummary}`);
@@ -884,7 +876,6 @@ function handleScan(origin: CustomCommandOrigin): CustomCommandResult {
     addNoise(15);
 
     const firewallBypassed = getScore(OBJ.fwall) >= 1;
-    const idsDisabled = getScore(OBJ.ids) >= 1;
     const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
 
     const lines = [
@@ -892,7 +883,7 @@ function handleScan(origin: CustomCommandOrigin): CustomCommandResult {
       `  §f22/tcp§r   open  §assh§r    OpenSSH 8.4`,
       `  §f80/tcp§r   open  §ahttp§r   nginx/1.18`,
       `  §f443/tcp§r  open  §ahttps§r  nginx/1.18   ` + (firewallBypassed ? "§a[CLEARED]§r" : "§e[FIREWALL ACTIVE]§r"),
-      `  §f3306/tcp§r open  §amysql§r              ` + (idsDisabled ? "§a[UNMONITORED]§r" : "§8[IDS MONITORED]§r"),
+      `  §f3306/tcp§r open  §amysql§r              §8[MONITORED]§r`,
       `  §f9999/tcp§r open  §aadmin§r              ` + (isAdmin ? "§a[CLEARED]§r" : "§c[RESTRICTED]§r"),
       "§8  tip: run /nb:ls to list known files, then /nb:cat auth.log or /nb:cat config to read them.§r",
     ];
@@ -903,12 +894,12 @@ function handleScan(origin: CustomCommandOrigin): CustomCommandResult {
 function handleStatus(origin: CustomCommandOrigin): CustomCommandResult {
   return runDeferredPlayerCommand(origin, (player) => {
     ensureSharedStateRegistered();
-    const solved = [OBJ.p01, OBJ.p02, OBJ.p03, OBJ.p04, OBJ.p05, OBJ.p06, OBJ.p07]
+    const solved = [OBJ.p01, OBJ.p02, OBJ.p03, OBJ.p04, OBJ.p07]
       .filter((key) => getScore(key) >= 1).length;
     const noise = getScore(OBJ.noise);
     const alarms = getScore(OBJ.alarms);
     player.sendMessage(
-      `§7[status]§r  Challenges: §a${solved}/7§r  Noise: ${noiseBar(noise)} ${noise}  Alarms: §c${alarms}§r`,
+      `§7[status]§r  Challenges: §a${solved}/5§r  Noise: ${noiseBar(noise)} ${noise}  Alarms: §c${alarms}§r`,
     );
   });
 }
@@ -1105,9 +1096,13 @@ function handleCat(origin: CustomCommandOrigin, ...args: unknown[]): CustomComma
       player.sendMessage(
         [
           "§7[cat] /var/log/auth.log§r",
-          "  04:11 auth: default account policy active",
-          "  04:13 auth: token check moved to vault puzzle flag",
-          "  04:17 auth: legacy guest password removed",
+          "  04:11  sshd     Accepted publickey for admin from 10.0.0.5",
+          "  04:13  sudo     admin opened root shell on pts/0",
+          "  04:15  iam      account gh0st disabled by Z3r0",
+          "  04:17  sshd     Accepted password for gh0st from 203.0.113.42",
+          "  04:19  audit    gh0st read /opt/exploits/firewall.bin",
+          "  04:21  cron     root completed integrity scan",
+          "  04:23  systemd  closed session for admin",
           "§7[cat]§r  read complete §7(noise +1)§r",
         ].join("\n"),
       );
@@ -1120,9 +1115,8 @@ function handleCat(origin: CustomCommandOrigin, ...args: unknown[]): CustomComma
         [
           "§7[cat] /etc/config§r",
           "  firewall.mode=strict",
-          "  ids.mode=active",
-          "  encryption.layer=core",
-          "  note: exploit chain requires token, ids bypass, and core key",
+          "  core.defense=active",
+          "  note: exploit chain requires the firewall token and core access",
           "§7[cat]§r  read complete §7(noise +1)§r",
         ].join("\n"),
       );
@@ -1139,7 +1133,7 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
 
     const params = args.filter((a): a is string => typeof a === "string");
     if (params.length < 1) {
-      applyCommandPenalty(player, "[exploit] Usage: nb:exploit <firewall|ids|encryption|root>", 2);
+      applyCommandPenalty(player, "[exploit] Usage: nb:exploit <firewall|root>", 2);
       return;
     }
 
@@ -1162,44 +1156,6 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
       addNoise(15);
       setScore(OBJ.fwall, 1);
       player.sendMessage("§a[exploit firewall]§r  Firewall bypassed. Access route opened.");
-      return;
-    }
-
-    if (target === "ids") {
-      if (permission < PERM_USER) {
-        applyCommandPenalty(player, "[exploit ids] User permission required.", 4);
-        return;
-      }
-      if (getScore(OBJ.p05) < 1) {
-        applyCommandPenalty(player, "[exploit ids] IDS bypass module not found.", 18);
-        return;
-      }
-      if (getScore(OBJ.ids) >= 1) {
-        player.sendMessage("§7[exploit ids]§r  IDS bypass is already active.");
-        return;
-      }
-      addNoise(12);
-      setScore(OBJ.ids, 1);
-      player.sendMessage("§a[exploit ids]§r  IDS bypass active. Noise now decays twice as fast.");
-      return;
-    }
-
-    if (target === "encryption") {
-      if (permission < PERM_ADMIN) {
-        applyCommandPenalty(player, "[exploit encryption] Admin permission required.", 6);
-        return;
-      }
-      if (getScore(OBJ.p06) < 1) {
-        applyCommandPenalty(player, "[exploit encryption] Encryption key not found.", 25);
-        return;
-      }
-      if (getScore(OBJ.enc) >= 1) {
-        player.sendMessage("§7[exploit encryption]§r  Core encryption is already broken.");
-        return;
-      }
-      addNoise(20);
-      setScore(OBJ.enc, 1);
-      player.sendMessage("§a[exploit encryption]§r  Core encryption broken. Complete the Port Knock to expose root.");
       return;
     }
 
@@ -1266,6 +1222,20 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
           );
         } catch {}
       }, 200);
+
+      // Close the run: return everyone to the lobby spawn.
+      // TODO: on victory also set weather to clear/sunny and run credits + music (method TBD).
+      system.runTimeout(() => {
+        const overworld = world.getDimension("overworld");
+        for (const p of world.getAllPlayers()) {
+          try {
+            p.teleport(
+              { x: BOUNDARY.spawnX + 0.5, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ + 0.5 },
+              { dimension: overworld },
+            );
+          } catch {}
+        }
+      }, 220);
 
       return;
     }
@@ -1555,8 +1525,7 @@ function gameTick(): void {
     if (current > 0 && currentBand !== "LOCKDOWN") {
       const decayStepTicks = currentBand === "ALERT" ? 40 : 20;
       if (tickCount % decayStepTicks === 0) {
-        const idsMultiplier = getScore(OBJ.ids) >= 1 ? 2 : 1;
-        setScore(OBJ.noise, current - (NOISE_DECAY_RATE * idsMultiplier));
+        setScore(OBJ.noise, current - NOISE_DECAY_RATE);
       }
     }
   }

@@ -212,11 +212,8 @@ __marimo__/
 # Node.js / TypeScript build artifacts
 node_modules/
 packs/node_modules/
-packs/behavior_pack/scripts/
-*.tsbuildinfo
-*.mcaddon
 release-output/
-
+packs/.tsbuildinfo
 # Behavior pack local environment
 packs/.env
 
