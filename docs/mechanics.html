@@ -712,7 +712,7 @@
       <td><span class="noise-val">+1</span></td>
       <td><span class="noise-val">+4</span></td>
       <td><code>nb_p01 &ge; 1</code></td>
-      <td>Shows system config; hints at firewall &amp; encryption</td>
+      <td>Shows system config; hints at the exploit chain</td>
       <td><span class="badge badge-green">LIVE</span></td>
     </tr>
     <tr>
@@ -778,32 +778,12 @@
       <td><span class="badge badge-green">LIVE</span></td>
     </tr>
     <tr>
-      <td><span class="cmd">exploit ids</span></td>
-      <td><span class="cat">Exploit</span></td>
-      <td><span class="perm perm-user">user</span></td>
-      <td><span class="noise-val">+12</span></td>
-      <td><span class="noise-val">+18</span></td>
-      <td><code>nb_p05 &ge; 1</code></td>
-      <td>Disables IDS; doubles noise decay rate</td>
-      <td><span class="badge badge-green">LIVE</span></td>
-    </tr>
-    <tr>
-      <td><span class="cmd">exploit encryption</span></td>
-      <td><span class="cat">Exploit</span></td>
-      <td><span class="perm perm-admin">admin</span></td>
-      <td><span class="noise-val">+20</span></td>
-      <td><span class="noise-val">+25</span></td>
-      <td><code>nb_p06 &ge; 1</code></td>
-      <td>Breaks encryption; sets <code>nb_enc=1</code></td>
-      <td><span class="badge badge-green">LIVE</span></td>
-    </tr>
-    <tr>
       <td><span class="cmd">exploit root</span></td>
       <td><span class="cat">Exploit</span></td>
       <td><span class="perm perm-admin">admin</span></td>
       <td><span class="noise-val">+50</span></td>
       <td><span class="noise-val">+30</span></td>
-      <td><code>nb_enc=1</code> + <code>nb_p07 &ge; 1</code> + must be in End</td>
+      <td><code>nb_enc=1</code> (boss defeated) + <code>nb_p07 &ge; 1</code> + must be in End</td>
       <td>⭐ WIN: grants root, shuts down system</td>
       <td><span class="badge badge-green">LIVE</span></td>
     </tr>
@@ -867,7 +847,7 @@
       <div class="perm-details">
         <h4>User: Shared Authenticated Session</h4>
         <p>Gained via <code>login admin hexc0re2049</code> after finding the credential vault. Unlocks exploit commands and stealth operations.</p>
-        <div class="unlocks">→ Unlocks: exploit firewall, exploit ids, patch_covers, sudo</div>
+        <div class="unlocks">→ Unlocks: exploit firewall, patch_covers, sudo</div>
       </div>
     </div>
   </div>
@@ -877,8 +857,8 @@
       <div class="perm-circle circle-admin">ADMIN</div>
       <div class="perm-details">
         <h4>Admin: Shared Privileged Session</h4>
-        <p>Gained via <code>sudo</code> after decoding the Nether access byte. Grants access to encryption exploits and the patrol kill command.</p>
-        <div class="unlocks">→ Unlocks: exploit encryption, kill_patrol, exploit root (after encryption and Port Knock)</div>
+        <p>Gained via <code>sudo</code> after decoding the Nether access byte. Grants the patrol kill command and, once the core defense is down and Port Knock is complete, the root exploit.</p>
+        <div class="unlocks">→ Unlocks: kill_patrol, exploit root (after the boss and Port Knock)</div>
       </div>
     </div>
   </div>
@@ -887,7 +867,7 @@
       <div class="perm-circle circle-root">ROOT</div>
       <div class="perm-details">
         <h4>Root: Full System Access</h4>
-        <p>The win condition. Gained only by executing <code>exploit root</code> in the System Core after encryption is broken and Port Knock is complete. Victory persists and all defenses stop.</p>
+        <p>The win condition. Gained only by executing <code>exploit root</code> in the System Core after the core defense is down and Port Knock is complete. Victory persists, all defenses stop, and players return to the lobby.</p>
         <div class="unlocks">→ Game Over (Victory): all defenses disabled, victory sequence plays</div>
       </div>
     </div>
@@ -1051,7 +1031,7 @@
   <span class="tag">Complete Playthrough Path</span>
 </div>
 
-<p class="desc">This is one complete path from guest to root. Players may discover steps in different orders or take alternate routes (e.g., disabling IDS before exploiting the firewall for less noise penalty).</p>
+<p class="desc">This is one complete path from guest to root. Players may discover steps in different orders.</p>
 
 <div class="exploit-chain">
   <div class="chain-step">
@@ -1061,7 +1041,7 @@
     </div>
     <div class="chain-content">
       <h4>Credential Discovery</h4>
-      <p>Follow the lobby briefing and GHOST note to the <strong>Credential Vault</strong>. Read the <code>auth.log backup</code>, then press the discovery button to set <code>nb_p01</code>. The shared flag capture reduces noise by 3.</p>
+      <p>Follow the lobby briefing and Gh0st note to the <strong>Credential Vault</strong>. Read the ticket <code>#4344</code>, then press the discovery button to set <code>nb_p01</code>. The shared flag capture reduces noise by 3.</p>
     </div>
   </div>
   <div class="chain-step">
@@ -1071,7 +1051,7 @@
     </div>
     <div class="chain-content">
       <h4>Reconnaissance</h4>
-      <p>Run <span class="cmd-inline">ls</span>, <span class="cmd-inline">cat auth.log</span>, <span class="cmd-inline">cat config</span>, and <span class="cmd-inline">scan</span>. Solve the <strong>SSH Log Triage</strong> (<code>nb_p03</code>) and <strong>Firewall Rules Console</strong> (<code>nb_p05</code>). Each first flag capture reduces shared noise by 3.</p>
+      <p>Run <span class="cmd-inline">ls</span>, <span class="cmd-inline">cat auth.log</span>, <span class="cmd-inline">cat config</span>, and <span class="cmd-inline">scan</span>. Solve the <strong>SSH Log Triage</strong> (<code>nb_p03</code>). The first flag capture reduces shared noise by 3.</p>
     </div>
   </div>
   <div class="chain-step">
@@ -1090,23 +1070,13 @@
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Disable IDS (Optional but Recommended): <span class="cmd-inline">exploit ids</span></h4>
-      <p>With <code>nb_p05</code>, run <span class="cmd-inline">exploit ids</span> before exploiting the firewall. This adds 12 noise and doubles passive noise decay for the rest of the session.</p>
-    </div>
-  </div>
-  <div class="chain-step">
-    <div class="chain-line-wrap">
-      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">5</div>
-      <div class="chain-connector"></div>
-    </div>
-    <div class="chain-content">
       <h4>Firewall Bypass: <span class="cmd-inline">exploit firewall</span></h4>
       <p>With <code>nb_p03</code> set and <code>nb_fwall = 0</code>, run <span class="cmd-inline">exploit firewall</span>. This adds 15 noise and sets <code>nb_fwall = 1</code>. If noise reaches ALERT while the firewall is bypassed, the defense system resets <code>nb_fwall</code> to 0.</p>
     </div>
   </div>
   <div class="chain-step">
     <div class="chain-line-wrap">
-      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">6</div>
+      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">5</div>
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
@@ -1116,17 +1086,17 @@
   </div>
   <div class="chain-step">
     <div class="chain-line-wrap">
-      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">7</div>
+      <div class="chain-num" style="background:var(--yellow-dim);color:var(--yellow)">6</div>
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
       <h4>Privilege Escalation: <span class="cmd-inline">sudo</span></h4>
-      <p>Run <span class="cmd-inline">sudo</span>. With <code>nb_p04</code> set, shared permission changes from <strong>user → admin</strong> and adds 25 noise. This exposes <span class="cmd-inline">exploit encryption</span> and <span class="cmd-inline">kill_patrol</span>.</p>
+      <p>Run <span class="cmd-inline">sudo</span>. With <code>nb_p04</code> set, shared permission changes from <strong>user → admin</strong> and adds 25 noise. This exposes <span class="cmd-inline">kill_patrol</span> and the path to root.</p>
     </div>
   </div>
   <div class="chain-step">
     <div class="chain-line-wrap">
-      <div class="chain-num" style="background:var(--red-dim);color:var(--red)">8</div>
+      <div class="chain-num" style="background:var(--red-dim);color:var(--red)">7</div>
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
@@ -1136,12 +1106,22 @@
   </div>
   <div class="chain-step">
     <div class="chain-line-wrap">
+      <div class="chain-num" style="background:var(--red-dim);color:var(--red)">8</div>
+      <div class="chain-connector"></div>
+    </div>
+    <div class="chain-content">
+      <h4>Core Defense Boss</h4>
+      <p>The System Core defends itself. Fight the boss with the blasters and armor from the staging pad. Defeating it sets <code>nb_enc</code>, the core defense down.</p>
+    </div>
+  </div>
+  <div class="chain-step">
+    <div class="chain-line-wrap">
       <div class="chain-num" style="background:var(--red-dim);color:var(--red)">9</div>
       <div class="chain-connector"></div>
     </div>
     <div class="chain-content">
-      <h4>Assemble the Key and Knock Sequence</h4>
-      <p>Route the Echo Shard, Amethyst Shard, and Prismarine Crystals through their filtered receivers to set <code>nb_p06</code>. Complete the shared knock sequence <code>1337 → 22 → 443</code> to set <code>nb_p07</code>. Wrong knocks reset the sequence and add 2 noise.</p>
+      <h4>Port Knock Sequence</h4>
+      <p>Complete the shared knock sequence <code>1337 → 22 → 443</code> to set <code>nb_p07</code>. Wrong knocks reset the sequence and add 2 noise.</p>
     </div>
   </div>
   <div class="chain-step">
@@ -1149,8 +1129,8 @@
       <div class="chain-num" style="background:var(--red-dim);color:var(--red)">10</div>
     </div>
     <div class="chain-content" style="border-color:var(--green);background:rgba(0,255,136,0.05)">
-      <h4 style="color:var(--green)">⭐ Break Encryption and Execute Root</h4>
-      <p>With <code>nb_p06</code>, run <span class="cmd-inline">exploit encryption</span> to set <code>nb_enc=1</code> and add 20 noise. From the End, with <code>nb_p07</code> also set, run <span class="cmd-inline">exploit root</span>. Root adds 50 noise, persists victory, clears lockout, and stops defenses.</p>
+      <h4 style="color:var(--green)">⭐ Execute Root</h4>
+      <p>From the End, with the boss defeated (<code>nb_enc</code>) and <code>nb_p07</code> set, run <span class="cmd-inline">exploit root</span>. Root adds 50 noise, persists victory, clears lockout, stops defenses, and returns players to the lobby.</p>
     </div>
   </div>
 </div>
@@ -1161,7 +1141,7 @@
 <div class="section-header" id="biome-puzzles">
   <div class="num">07</div>
   <h2>Puzzles by Biome</h2>
-  <span class="tag">7 Puzzles Across 3 Areas</span>
+  <span class="tag">5 Puzzles + Boss Across 3 Areas</span>
 </div>
 
 <p class="desc">Each area contains puzzles that teach a cybersecurity concept. Puzzles use command blocks, redstone, NPC dialogue, or script events. Completion sets an immutable flag on <code>NB_GLOBAL</code>. The first capture of each flag reduces shared noise by 3. For zone atmosphere and story context, see <a href="../index.html#the-world" style="color:var(--green)">The World ↗</a> on the main page.</p>
@@ -1193,15 +1173,6 @@
           <div class="concept">Concept: Log Analysis / Anomaly Detection</div>
         </div>
       </div>
-      <div class="puzzle-item">
-        <span class="puzzle-num">3</span>
-        <div>
-          <h5>Firewall Rules Console</h5>
-          <p>8 levers labeled with port numbers. Hint: &quot;Allow Web Traffic Only&quot;. Set ports 80 and 443 ON, all others OFF. Redstone AND gate detects correct state.</p>
-          <div class="reward">→ Sets: <code>nb_p05</code> (unlocks nb:exploit ids)</div>
-          <div class="concept">Concept: Firewall Rules / Port Management</div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1214,7 +1185,7 @@
     </div>
     <div class="puzzle-list">
       <div class="puzzle-item">
-        <span class="puzzle-num">4</span>
+        <span class="puzzle-num">3</span>
         <div>
           <h5>Binary Access-Code Decoder</h5>
           <p>8 levers are labeled with bit values from 128 to 1. The recovered byte is <code>01000001</code>, which is decimal 65 and ASCII A. Set levers 64 and 1 ON, all others OFF. The AND gate detects the correct state.</p>
@@ -1223,7 +1194,7 @@
         </div>
       </div>
       <div class="puzzle-item">
-        <span class="puzzle-num">5</span>
+        <span class="puzzle-num">4</span>
         <div>
           <h5>Route Access Request</h5>
           <p>Submit four evidence fields gathered across both dimensions: ticket 4344, host ETH2-GW, maintenance window 04:30, and approver ZERO. Wrong fields add noise. The correct submission opens the End portal gate.</p>
@@ -1243,16 +1214,16 @@
     </div>
     <div class="puzzle-list">
       <div class="puzzle-item">
-        <span class="puzzle-num">6</span>
+        <span class="puzzle-num">★</span>
         <div>
-          <h5>Encryption Key Assembly</h5>
-          <p>Recover an Echo Shard, Amethyst Shard, and Prismarine Crystals from separate End islands. Route each through its matching hopper item filter. Three latched outputs complete the vault.</p>
-          <div class="reward">→ Sets: <code>nb_p06</code> (unlocks nb:exploit encryption)</div>
-          <div class="concept">Concept: Key Management / Cold Storage</div>
+          <h5>Core Defense Boss</h5>
+          <p>The System Core defends itself with a mecha boss. Fight it with the blasters and armor from the staging pad. Defeating it clears the core defense.</p>
+          <div class="reward">→ Sets: <code>nb_enc</code> (core defense down)</div>
+          <div class="concept">Concept: Active Defense / Incident Response</div>
         </div>
       </div>
       <div class="puzzle-item">
-        <span class="puzzle-num">7</span>
+        <span class="puzzle-num">5</span>
         <div>
           <h5>Port Knock Sequence</h5>
           <p>Five pressure plates emit <code>nb:knock</code> script events. Correct order: 1337 → 22 → 443. Any wrong port resets shared <code>nb_knock</code> progress and adds 2 noise.</p>
@@ -1266,7 +1237,7 @@
 
 <div class="note">
   <div class="note-title">Map Design Notes</div>
-  Each area should have a distinct visual identity: Overworld, corporate server room; Nether, hot datacenter; End, cold vault. Place <code>chiseled_stone_bricks</code> as patrol spawn markers throughout each area. See <code>puzzle-guide.md</code> for full puzzle instructions and command-block setups.
+  Each area should have a distinct visual identity: Overworld, corporate server room; Nether, hot datacenter; End, cold vault. Place <code>chiseled_stone_bricks</code> as patrol spawn markers throughout each area. See <code>build-guide.md</code> for full puzzle instructions and command-block setups.
 </div>
 
 </div><!-- /wrapper -->

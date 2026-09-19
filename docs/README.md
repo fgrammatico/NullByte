@@ -24,17 +24,17 @@ Reference material for players, hosts, and developers.
 ```
 Lobby (HR_BOT chat greeting)
   └─ P1 nb_p01 → login (user)
-       ├─ P2 nb_p03 → exploit firewall (nb_fwall) → Nether
-       └─ P3 nb_p05 → exploit ids (nb_ids)
+
+Overworld
+  └─ P2 nb_p03 → exploit firewall (nb_fwall) + Nether safe-room card → Nether
 
 Nether
-  ├─ P4 nb_p04 → sudo (admin)
-  └─ P5 nb_p02 → End gate
+  ├─ P3 nb_p04 → sudo (admin)
+  └─ P4 nb_p02 → End gate
 
 End
-  ├─ P6 nb_p06 → exploit encryption (nb_enc)
-  ├─ P7 nb_p07 → port knock complete
-  └─ nb_core_clear → boss defeated (planned)
+  ├─ Boss → nb_enc (core defense down)
+  └─ P5 nb_p07 → port knock complete
 
-Root: admin + nb_enc + nb_p07 + nb_core_clear → nb_victory
+Root: admin + nb_enc + nb_p07 → nb_victory → return to lobby
 ```

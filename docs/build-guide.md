@@ -16,10 +16,9 @@ For noise band thresholds and patrol mob types see `packs/docs/noise-reference.m
 |---|---|---|
 | `nb_p01` | Command block | Discovery button in vault |
 | `nb_p03` | Command block | NPC dialogue button at the SOC triage terminal |
-| `nb_p05` | Command block | AND gate from lever circuit |
 | `nb_p04` | Command block | AND gate from lever circuit |
-| `nb_p02` | Command block | Physical puzzle mechanism (see Puzzle 5) |
-| `nb_p06` | Command block | Hopper filter AND gate |
+| `nb_p02` | Command block | Physical puzzle mechanism (see Puzzle 4) |
+| `nb_enc` | Command block or script | Set when the End boss is defeated |
 | `nb_p07` | **Script (main.ts)** | `scriptevent nb:knock` sequence |
 
 All flags except `nb_p07` are set by command blocks you place in the world. The script only detects the change and reacts.
@@ -32,10 +31,10 @@ The flags are prerequisites that terminal commands CHECK. The commands themselve
 |---|---|---|
 | `nb:login admin hexc0re2049` | `nb_p01 >= 1` + correct credentials | `nb_perm = 1` (user) |
 | `nb:exploit firewall` | `nb_p03 >= 1` + user | `nb_fwall = 1` |
-| `nb:exploit ids` | `nb_p05 >= 1` + user | `nb_ids = 1` |
 | `nb:sudo <action>` | `nb_p04 >= 1` + user | `nb_perm = 2` (admin) |
-| `nb:exploit encryption` | `nb_p06 >= 1` + admin | `nb_enc = 1` |
 | `nb:exploit root` | `nb_enc=1` + `nb_p07=1` + admin + End | `nb_perm = 3` + `nb_victory = 1` |
+
+`nb_enc` is not set by a command. The End boss sets it on death. It means "core defense down".
 
 **Puzzle 1 example:** The player finds the vault and presses the discovery button. The command block sets `nb_p01 = 1`. The script announces the capture. The player then types `nb:login admin hexc0re2049`. The script checks `nb_p01 >= 1` and the credentials, then sets `nb_perm = 1` (user). The flag and the login are two separate steps. Typing the password does not set the flag.
 
@@ -52,11 +51,40 @@ Full character detail and story is in `story/story.md`.
 | Character | What it is | Voice | Signs/emails formatted as |
 |---|---|---|---|
 | ZERO | HEXCORE's security AI. Decides what counts as an incident. SENTINEL takes its orders from ZERO. | Cold, clinical, brief | `[ZERO]` |
-| GHOST | Human. Terminated employee, account `g.host`. Left the trail on purpose. | Wry, informal | `- G` |
+| Gh0st | Human. Terminated employee, account `gh0st`. Left the trail on purpose. | Wry, informal | `- G` |
 | SENTINEL | Automated defence. Executes ZERO's response level. No judgement of its own. | Automated alert | `[SENTINEL]` |
 | HR_BOT | Intake AI. Thinks players are candidates. Gets angrier as puzzles are solved. | Corporate, degrading | `HR_BOT` on nameplate |
 
 Use different sign or book materials per author so players recognise the source by material before reading.
+
+### Naming rules (do not deviate)
+
+| Where it appears | Write it as |
+|---|---|
+| The AI, in prose, signs, chat, on-screen alerts | `ZERO` (banner form `[ZERO]`) |
+| The AI, inside a raw system log line only | literal `Z3r0` (a machine field, not the display name) |
+| The human, everywhere | `Gh0st` (short signature `- G`) |
+| The human's account string, in logs and tickets | `gh0st` |
+| The defence system | `SENTINEL` |
+
+Never use `GHOST`, `GH0ST`, `g.host`, or `[Z3r0]` on a sign. Those are old spellings and are wrong.
+
+### Delivery channels (hard limits)
+
+Every line of story has to fit one of these channels or it cannot be built. Do not write anything that needs a channel that is not listed here.
+
+| Voice | Only delivered as | Never |
+|---|---|---|
+| Gh0st | Email on a PC, printed note, book, or sign | Never spoken live, never an NPC |
+| ZERO | Chat line (`say`/`tellraw`) or on-screen alert (`titleraw`) | No email, no note, no NPC |
+| SENTINEL | Chat line, on-screen alert, or the physical response it triggers | No email, no note, no NPC |
+| Terminal | Text the `nb:` commands print back in chat | Not a character |
+
+NPCs may still be used as plain consoles or answer terminals (see Puzzle 2), but ZERO and SENTINEL are never an NPC a player walks up to. They are system output only.
+
+**Text length limits.** Email body: 100 characters per line. Forum note: 50 characters per line. Keep every message inside these or it runs off screen.
+
+**Forums are global.** A forum post is readable from any PC at any time. It is background chatter only. A forum post never holds a puzzle answer and never tells the player where to go next. Only emails (with keycards), on-screen alerts, and locked doors move the player forward.
 
 ### Two separate ways characters talk
 
@@ -87,7 +115,7 @@ Build the three zones to feel different from each other:
 |---|---|
 | eth0, Overworld | Occupied. People work here and their mistakes are everywhere. Coffee, sticky notes, half-read alerts. |
 | eth1, Nether | Empty. Machines switched on years ago and never checked since. No people at all. |
-| eth2, The End | Officially does not exist. Air-gapped, so the only way in is physical. GHOST has been here before. |
+| eth2, The End | Officially does not exist. Air-gapped, so the only way in is physical. Gh0st has been here before. |
 
 ### The night everything comes from
 
@@ -96,13 +124,13 @@ Every puzzle is evidence from one night. Learn this timeline before writing any 
 | Time | What happened |
 |---|---|
 | 04:11 | `admin` logged in and an alert fired. Nobody read it, because at 04:11 every alert is the backup job. |
-| 04:15 | ZERO disabled the account `g.host`. Routine, the employee had been terminated. |
-| 04:17 | `g.host` logged in again, from an address outside the building. |
+| 04:15 | ZERO disabled the account `gh0st`. Routine, the employee had been terminated. |
+| 04:17 | `gh0st` logged in again, from an address outside the building. |
 | 04:19 | That account read a file it had no business reading. |
 
 Somebody filed **ticket #4344**. ZERO marked the incident closed, evidence inconclusive. The ticket itself stayed open, because the maintenance route attached to it was still running, and closing the ticket would have raised a second incident. ZERO does not open incidents.
 
-**#4344 is one ticket, not three.** It appears in Puzzle 1 as the place the password was written down, in Puzzle 2 as the thing ZERO refuses to discuss, and in Puzzle 5 as the authorisation that is still valid. Use the same number every time. Never invent a second ticket number.
+**#4344 is one ticket, not three.** It appears in Puzzle 1 as the place the password was written down, in Puzzle 2 as the thing ZERO refuses to discuss, and in Puzzle 4 as the authorisation that is still valid. Use the same number every time. Never invent a second ticket number.
 
 ### Why noise exists
 
@@ -112,11 +140,13 @@ Solving a puzzle removes noise because a legitimate action just happened and the
 
 ### Who the player is
 
-The player answered a job advert and is here for an evaluation. The advert was fake. GHOST wrote it from a closed internal account and put the player on the candidate list before leaving. The player does not learn this until the ending.
+The player answered a job advert and is here for an evaluation. The advert was fake. Gh0st wrote it from a closed internal account and put the player on the candidate list before leaving. The player does not learn this until the ending.
 
-This means GHOST's messages are not addressed to a stranger. They are addressed to someone GHOST chose. Write them that way.
+This means Gh0st's messages are not addressed to a stranger. They are addressed to someone Gh0st chose. Write them that way.
 
 ### HR_BOT stage schedule
+
+> **Deferred.** Only the lobby greeting is in scope right now. HR_BOT currently just welcomes players in the lobby. The escalation arc below is not being built yet; ignore it until the lobby version is done and more bots are placed.
 
 HR_BOT starts delighted and gets angrier at every flag, then is freed at root. Each stage is a `/dialogue change` fired from a chain block off that flag. See the arc in `story/story.md` and Appendix H for the wiring.
 
@@ -125,10 +155,8 @@ HR_BOT starts delighted and gets angrier at every flag, then is freed at root. E
 | Lobby, before any flag | Delighted. You are a promising candidate. |
 | `nb_p01` | Cheerful, but notes an irregularity in your assessment file. |
 | `nb_p03` | Concerned. Unscheduled activity affects your score. |
-| `nb_p05` | Annoyed. Asks you to stop and return to the lobby. |
 | `nb_p04` | Angry. Corporate language slipping. Threatens your candidacy. |
 | `nb_p02` | Furious and glitching. Quoting policy mid-sentence. |
-| `nb_p06` | Barely holding together. A different voice showing through. |
 | `nb_victory` | Freed. One calm line in its own voice. |
 
 The turn is that HR_BOT was never angry at the player. It was the only part of HEXCORE that could still talk, and it was being made to say those things.
@@ -144,9 +172,8 @@ These add-ons are already available in the world. Prefer their objects over plai
 
 | Object | What it does | Use it for |
 |---|---|---|
-| PC | Receives emails, shows forum notes, prints emails | All GHOST and ZERO messages, forum threads, printed evidence |
+| PC | Receives emails, shows forum notes, prints emails | All Gh0st messages, forum notes, printed evidence |
 | PC banking app | Behaves like a chest; items can be placed and transferred to other players | Handing out keycards, tools, quest items |
-| jPhone | Like a PC but portable, fewer apps | Messages the player receives away from a desk |
 
 ### Security Sandbox
 
@@ -159,7 +186,7 @@ These add-ons are already available in the world. Prefer their objects over plai
 | Teleport block | Programmable destination | Overworld to Nether and Nether to End transitions |
 | Mecha bots | Follow, defend, attack | Escorts and SENTINEL patrols |
 | Drones | Flight | Movement between sky buildings |
-| Sculk sentinel golem | Boss entity | Final boss in the End, still to be built |
+| Sculk sentinel golem | Boss entity | Core Defense boss in the End |
 
 ### Ultimate Blasters v1.2 - Radium Studio
 
@@ -182,12 +209,11 @@ Rules of use:
 | # | Puzzle | Zone | Flag | Unlocks |
 |---|---|---|---|---|
 | 1 | Credential Vault | Overworld | `nb_p01` | `nb:login`, `nb:ls`, `nb:cat`, `nb:scan` |
-| 2 | SSH Log Triage | Overworld | `nb_p03` | `nb:exploit firewall` |
-| 3 | Firewall Rules Console | Overworld | `nb_p05` | `nb:exploit ids` |
-| 4 | Binary Access-Code Decoder | Nether | `nb_p04` | `nb:sudo` |
-| 5 | Route Access Request | Nether | `nb_p02` | End entry (removes +8 noise penalty) |
-| 6 | Encryption Key Assembly | End | `nb_p06` | `nb:exploit encryption` |
-| 7 | Port Knock Sequence | End | `nb_p07` | `nb:exploit root` |
+| 2 | SSH Log Triage | Overworld | `nb_p03` | `nb:exploit firewall`, Nether safe-room card |
+| 3 | Binary Access-Code Decoder | Nether | `nb_p04` | `nb:sudo` |
+| 4 | Route Access Request | Nether | `nb_p02` | End entry (removes +8 noise penalty) |
+| - | Core Defense boss | End | `nb_enc` | Port Knock becomes active |
+| 5 | Port Knock Sequence | End | `nb_p07` | `nb:exploit root` |
 
 ---
 
@@ -206,6 +232,8 @@ Every area after the lobby is locked. The player gets into it the same way every
 
 One card per area. Cards are not shared and not reused. A player who has not reached that stage cannot open that door, so nobody can wander into a later room and read the answer to a puzzle they have not started. The lock is the progression.
 
+**The transition is always email-led.** When a flag is set, a Gh0st email arrives in the current area's PC. That email does two jobs: it names the next room in plain language, and it carries the keycard that opens that room's door. The player does not have to guess where to go; the email says it, and the attached card proves they earned it. Forums never do this job, only the email does.
+
 ### What every puzzle must do when it is solved
 
 Two things, always:
@@ -213,7 +241,7 @@ Two things, always:
 1. Set its flag. This is the mechanical unlock, and the script announces the capture and removes 3 noise.
 2. Give a hint pointing at where to go next. A flag on its own leaves the player standing in a solved room with nowhere to go.
 
-The hint can be the next email arriving, a new forum post, a GHOST note, a sign that changes, or a line of dialogue. What matters is that the player leaves the room knowing where to look.
+The hint is normally the next Gh0st email arriving with its keycard. It can also be reinforced by a sign that changes or an on-screen line. What matters is that the player leaves the room knowing where to look and holding the card that gets them there.
 
 ### Delivering the hint
 
@@ -225,8 +253,6 @@ Common ways to reveal a hint:
 - Replace a `[LOCKED]` sign with a readable one.
 - Open the hatch or corridor that leads toward the next area.
 - Trigger a sound and an actionbar line so the player knows something changed.
-
-> **Still open.** How the keycard actually reaches the player's inbox at the right moment, and whether the hint should be pushed or waited for, is not decided. Work it out one puzzle at a time and write the answer into that puzzle's Transition section.
 
 ---
 
@@ -256,16 +282,15 @@ Block B (Impulse / Needs Redstone, powered by comparator output from Block A):
 /execute as @e[type=villager,name=HR_BOT1,c=1] run say Welcome to HEXCORE. Type /nb:menu to open your terminal.
 ```
 
-### ZERO lobby message at spawn after villager triggerd by proximity
+### ZERO lobby message at spawn after villager triggered by proximity
 
 ```
-HEXCORE HIRING PROTOCOL
-
+[HEXCORE HIRING PROTOCOL]
 Every command is logged.
 Any hacking attempt will be reported and punished.
 ```
 
-### GHOST email in the lab PC
+### Gh0st email in the lab PC
 ```
 HEXCORE is the target.
 I left the way in.
@@ -273,46 +298,40 @@ Follow the trail. Shut it down.
 - G
 ```
 
-This email is addressed to the player by name. GHOST wrote the job advert that brought them here. The player does not learn that until the ending. See `story/story.md`.
+This email is addressed to the player. Gh0st wrote the job advert that brought them here. The player does not learn that until the ending. See `story/story.md`. Orange key card attached to open secured office.
 
-### SENTINEL warning sign (before first puzzle route)
+### ZERO warning (spawn sign or on-screen alert, before first puzzle route)
+
+ZERO is system output, not a forum poster. Place this on a sign near spawn or fire it as an on-screen alert. Do not put it in a forum thread.
 
 ```
-[SENTINEL]
+[ZERO]
 Automated defense active.
-Shared noise triggers patrols,
-terminal restrictions,
-and access revocation.
+Shared noise triggers patrols
+and terminal restrictions.
 ```
-
-Add directional signs toward server room, SOC, and hardware lab. Tell players to type `/nb:menu`.
 
 ---
 
 ## Puzzle 1: Credential Vault
 
-**Zone:** Overworld - server room
+**Zone:** Overworld - the secured office
 **Flag:** `nb_p01` | **Set by:** command block
-**Story:** The password was written into ticket `#4344` by whoever triaged the incident, because the account was a backup that had never been rotated and nobody expected the ticket to be read. It is the same `#4344` from the Story spine, and it comes back in Puzzle 2 and Puzzle 5. The player is not stealing a password. They are reading a ticket that was left open.
+**Story:** The password was written into ticket `#4344` by whoever triaged the incident, because the account was a backup that had never been rotated and nobody expected the ticket to be read. It is the same `#4344` from the Story spine, and it comes back in Puzzle 2 and Puzzle 4. The player is not stealing a password. They are reading a ticket that was left open.
 
 ### Build
 
-- Server room; Huge in the Lab.
-- In the Lab the player finds a desktop PC with emails from Gh0st, mentioning a secret vault accessigble only be a card.
-The card is attached in the email.
-The player can only access the vault passing the card on the reader.
-In the vault he will find another desktop pc and another email. The player discover that the vault is the SOC analyst center where tickets are triaged. A ticket reads
-
- `auth.log backup`:
+- The secured office; small safe area in the Lab.
+- In the Lab the player finds a desktop PC with emails from Gh0st, mentioning a secret vault reachable only with a card. The card is attached to the email.
+- The player reaches the vault by passing the card on the reader.
+- Inside the vault is another desktop PC and another email. The player learns the vault is the secured office where tickets are triaged. A ticket, shown as a printed record (a system artifact, no author), reads:
 
 ```
-You won't believe this, Alert triggered
+Alert triggered. You won't believe this.
 Ticket #4344.
 User: admin
 Password: hexc0re2049
-- Yes, really.
-- I filed a ticket.
-- Still open.
+Filed a ticket. Still open.
 ```
 
 - Command block release the flag because of proximity
@@ -328,79 +347,69 @@ scoreboard players set NB_GLOBAL nb_p01 1
 
 1. Player enters vault
 2. Command block sets `nb_p01 = 1`.
-3. Script detects change, broadcasts `[FLAG CAPTURED] Credentials`, removes 3 noise.
-4. Player types `nb:login admin hexc0re2049`.
-5. Script checks `nb_p01 >= 1` and exact credentials. Sets `nb_perm = 1` (user). Shows `ACCESS GRANTED`. Adds +10 noise.
-6. `nb:ls`, `nb:cat`, `nb:scan` now available.
+3. Script detects change, broadcasts `[FLAG CAPTURED] Credentials`, removes 3 noise, message "nb:login is now available."
+4. SENTINEL detects the breach and sends a message via command block proximity "Motion detected in secured office room, guards deployed" and mobs spawn outside in the lab waiting for a small fight. New block summons 2 skeletons ~6 ~1 ~.
+5. Player types `nb:login admin hexc0re2049`.
+6. Script checks `nb_p01 >= 1` and exact credentials. Sets `nb_perm = 1` (user). Shows `ACCESS GRANTED`. Adds +10 noise. 
+7. `nb:ls`, `nb:cat`, `nb:scan` are now available.
+
+> **Code TODO.** `nb:cat auth.log` currently prints three placeholder lines, not the real log. It must be updated in `packs/src/main.ts` to print the 7-line log shown in Puzzle 2 under "The log itself". Until then the login evidence looks wrong.
+
+8. Player reads another mail about the new flag to discover, finds a new card for the area, gets hint where to find the next room.
+9. Another email by Gh0st tells about the new added commands and then they must look out for NPCs and new terminal commands as they contain vital information. Also check for guns and weapons in the crate.
 
 ### Verify
 
-- Button not pressed: `nb:login` returns "authentication failed" even with correct credentials.
-- Button pressed: flag becomes 1, capture announced, noise -3.
+- Players attempt to enter wrong credemtials: `nb:login` returns "authentication failed" even with correct credentials.
+- Players attempt to enter good credemtials: flag becomes 1, capture announced, noise -3.
 - After login: `/nb:whoami` shows user.
 
 ### Transition to Puzzle 2
 
-> *Placeholder. Document here how the player is directed to the SOC lobby PC (SSH Log Triage) after this flag is captured.*
+Use the standard transition (see "Cross-puzzle continuity"). Chain a block off `nb_p01` to deliver a Gh0st email to the lab PC inbox. That email names the SSH Log Triage room and carries the keycard that opens its door.
 
 ---
 
-## Puzzle 2: SSH Log Triage
+## Puzzle 2: SSH Log Triage - Blue Ops Level
 
-**Zone:** Overworld - SOC lobby, then Blue Ops sublevel (keycard only)
+**Zone:** Overworld - SOC lobby, then Blue Ops sublevel (yellow keycard only)
 **Flag:** `nb_p03` | **Set by:** command block fired from an NPC dialogue button
-**Story:** GHOST's account `g.host` was reused from an outside address two minutes after ZERO disabled it. ZERO closed the incident, evidence inconclusive, and told everyone to stop asking. The proof was in the SSH log the whole time and nobody triaged it. This is the human floor: the failure here is that people stopped reading their alerts.
+**Story:** Gh0st's account `gh0st` was reused from an outside address two minutes after ZERO disabled it. ZERO closed the incident, evidence inconclusive, and told everyone to stop asking. The proof was in the SSH log the whole time and nobody triaged it. This is the human floor: the failure here is that people stopped reading their alerts.
 
-> **Replaces the old design.** The earlier version of this puzzle was a wall of 7 signs with 7 identical stone buttons. It is not built and is not being built. The chain below is the current design.
+**The point of this puzzle:** the evidence was always readable, people just stopped reading it. The player wins by doing the one thing the night shift would not: read the log and name the line that proves a dead account was reused. That is why a correct answer removes noise, it is a legitimate action.
 
 ### Player route, in order
 
-1. SOC lobby PC. Player reads a forum thread. One reply points at a sublevel and says a keycard was emailed.
-2. Same PC, email app. The email carries a Security Sandbox keycard.
-3. Keycard opens the Blue Ops security door.
-4. Blue Ops PC. GHOST email tells the player which log to read.
-5. Walking to the log rack trips a proximity command block. The `ssh_auth.log` file becomes readable.
+1. Player finds the entrance for the SOC lobby just in front of the Lab and opens only with the second card found from flag 1. 
+2. Blue Ops PC. Player reads a forum thread on a PC inside the SOC. Background chatter only; it does not gate anything.
+3. Blue Ops PC. Gh0st email tells the player which log to read.
+4. Walking to the log rack trips a proximity command block. The `ssh_auth.log` file becomes readable.
+5. Players notice the SOC TRIAGE console (an NPC used as a terminal) in the room.
 6. Player runs `nb:cat ssh_auth.log` in chat and reads 7 lines.
-7. Player answers at the SOC TRIAGE terminal NPC. Correct answer sets `nb_p03`.
+7. Player answers at the SOC TRIAGE console. Correct answer sets `nb_p03`.
 
 Reading happens in chat. Answering happens in a click menu. No typing of answers, no identical buttons to guess between.
 
-### Step 1 - forum thread (SOC lobby PC)
+### Step 1 - Gh0st email and forum chatter (SOC lobby PC)
 
-Jigarbov PC, forum notes app. Three posts, in this order.
+Only Gh0st authors emails and forum notes. Do not write coworkers as if they are speaking. Forum notes are ambient background (50 chars per line max) and never carry the keycard or the exact location; the email does that.
 
-Post 1, `sysadmin_priya`:
+Gh0st email (SOC lobby PC):
 ```
-Subject: night shift alerts are a mess again
-
-Anyone else getting paged at 4am?
-Half these alerts are the backup
-job. I stopped reading them.
-If it's real someone will call me.
-```
-
-Post 2, `ZERO`:
-```
-Subject: RE: night shift alerts
-
-Alert fatigue is a people problem.
-Ticket #4344 remains open.
-It will remain open.
-Stop posting about it.
-```
-
-Post 3, `g.host`:
-```
-Subject: RE: RE: night shift alerts
-
-Someone should actually read
-the SSH log from that night.
-Not the summary. The log.
-It's on the Blue Ops rack,
-sublevel 2.
-Card is in your inbox. You're
-welcome.
+Night shift stopped reading the 4am alerts.
+One of them was real. Read the SSH log from that night.
+Not the summary. The log itself.
 - G
+```
+
+Forum notes (global chatter, no author beyond Gh0st):
+```
+night shift alerts are a mess again
+half of them are just the backup job
+```
+```
+nobody ever reads the ssh logs
+we just trust the summary
 ```
 
 ### Step 2 - keycard email (same PC)
@@ -422,7 +431,7 @@ Attach a Security Sandbox keycard to this email. Program the same card into the 
 
 - Security Sandbox security door, keyed to the BLUE-OPS card only.
 - Put a camera above the door so players know they are watched.
-- Wall sign beside the door:
+- command block triggers say command beside the door:
 
 ```
 [SENTINEL]
@@ -463,7 +472,7 @@ Register the objective once:
 /scoreboard objectives add nb_sshlog dummy
 ```
 
-> **Code note:** `ssh_auth.log` and the `nb_sshlog` gate are NOT in `packs/src/main.ts` yet. `nb:cat` currently accepts only `auth.log` and `config`. Until that code is added, use the fallback in Step 5b.
+> **Code TODO:** `ssh_auth.log` and the `nb_sshlog` gate are NOT in `packs/src/main.ts` yet. `nb:cat` currently accepts only `auth.log` and `config`, and its `auth.log` output is placeholder text, not this log. Two code changes are needed: make `nb:cat auth.log` (or a new `ssh_auth.log`) print the 7 lines below, and add the `nb_sshlog` gate. Until then, use the fallback in Step 5b. Do the code work only after the story and this guide are settled.
 
 ### Step 5b - fallback with no code change
 
@@ -476,16 +485,18 @@ Seven lines, same content whether read through `nb:cat ssh_auth.log` or printed:
 ```
 04:11  sshd     Accepted publickey for admin from 10.0.0.5
 04:13  sudo     admin opened root shell on pts/0
-04:15  iam      account g.host disabled by ZERO
-04:17  sshd     Accepted password for g.host from 203.0.113.42
-04:19  audit    g.host read /opt/exploits/firewall.bin
+04:15  iam      account gh0st disabled by Z3r0
+04:17  sshd     Accepted password for gh0st from 203.0.113.42
+04:19  audit    gh0st read /opt/exploits/firewall.bin
 04:21  cron     root completed integrity scan
 04:23  systemd  closed session for admin
 ```
 
+In these raw log lines `gh0st` is the account string and `Z3r0` is the literal system actor field for ZERO. This is the only place those literal spellings are used.
+
 **Correct answer:** `04:17`. The account was disabled at 04:15 and logged in two minutes later, from an address outside the building.
 
-The first line matters too, even though it is not the answer. `04:11` is the login that fired the alert nobody read, the one `sysadmin_priya` complains about in the forum thread. A player who reads the thread first should recognise it.
+The first line matters too, even though it is not the answer. `04:11` is the login that fired the alert nobody read, the same 4am alert the forum chatter complains about. A player who reads the forum first should recognise it.
 
 Why the other tempting lines are wrong, useful when playtesting with the target age group:
 
@@ -505,7 +516,7 @@ This is the interactive part. Use an NPC, not buttons. The NPC dialogue UI gives
 |---|---|---|
 | `soc_triage_locked` | Before the SSH log is recovered | None. Sends them to the Blue Ops rack |
 | `soc_triage` | After the log is recovered | Four log lines |
-| `soc_triage_done` | After the correct answer | None. Confirms the flag and points at the hardware lab |
+| `soc_triage_done` | After the correct answer | None. Confirms the flag and points at the Nether safe room |
 
 Build steps:
 
@@ -542,105 +553,26 @@ Notes on this scene:
 
 - The Blue Ops door does not open without the emailed card.
 - Before the log is recovered, the NPC shows `soc_triage_locked` with no buttons.
-- `nb:cat auth.log` does not contain the g.host session. Only `ssh_auth.log` or the printed copy does.
+- `nb:cat auth.log` does not contain the gh0st session. Only `ssh_auth.log` or the printed copy does.
 - Picking `04:17` sets `nb_p03`, the script announces the capture and removes 3 noise.
 - After the correct answer the NPC shows `soc_triage_done` and cannot be answered again.
 - `nb:exploit firewall` fails before the correct answer and succeeds after it.
 
-### Transition to Puzzle 3
+### Transition to the Nether
 
-The `soc_triage_done` scene text points at the hardware lab. Add the keycard step from the Cross-puzzle continuity rule: chain a block off the flag to deliver the hardware lab card to the Blue Ops PC inbox.
+Puzzle 2 is the last Overworld puzzle. Use the standard email-led transition: chain a block off `nb_p03` to deliver a Gh0st email to the Blue Ops PC inbox that names the Nether entrance and carries the card for the Nether safe room. The player then runs `nb:exploit firewall`, enters the safe room with the card, and takes the teleport down.
 
-> *Still to document: which PC carries the hardware lab email, and how the card is delivered.*
-
-
----
-
-## Puzzle 3: Firewall Rules Console
-
-**Zone:** Overworld - hardware lab
-**Flag:** `nb_p05` | **Set by:** command block (AND gate from lever circuit)
-**Story:** GHOST found an IDS weakness and built a chip that exploits it. The audit that should have caught it found nothing, because the person signing it did not run it. GHOST was terminated. The chip is still in an unlocked cabinet. This is the last human failure before the player leaves the corporate floors.
-
-### Build
-
-8 levers in a row. Sign above each (left to right):
-```
-22    53    80    443    3389    8080    21    25
-```
-
-Hint sign: `ALLOW WEB TRAFFIC ONLY`
-Legend sign: `SSH=22  DNS=53  HTTP=80  HTTPS=443  RDP=3389  DEV=8080  FTP=21  SMTP=25`
-
-IDS bypass cabinet label (beside the console):
-```
-IDS BYPASS MODULE
-Rev 3.1 - prototype
-"for testing purposes only"
-(it works. trust me.)
-- G
-```
-
-### Messages to place
-
-GHOST bypass note (hardware lab computer):
-```
-Subject: IDS bypass - Rev 3.1
-
-I built this chip. It disables
-the IDS sensor on the internal
-service subnet.
-ZERO's audit missed it.
-It's in the cabinet.
-Use it before SENTINEL notices.
-- G
-```
-
-ZERO sign (place AFTER the console, not before):
-```
-[ZERO]
-Supply chain audit: complete.
-Findings: none.
-GHOST found a vulnerability.
-GHOST is no longer employed here.
-The vulnerability remains.
-```
-
-### Correct lever state
-
-Levers 80 and 443 ON. All others OFF.
-
-### Redstone
-
-- Levers 80 and 443 into an AND gate (both ON required).
-- Levers 22, 53, 3389, 8080, 21, 25 each through a NOT gate (torch inverter), all into the same AND gate (all OFF required).
-- Final AND output triggers the flag block.
-- Use a comparator + short repeater delay to prevent repeated triggers.
-
-### Flag command block (AND gate output)
-
-```
-scoreboard players set NB_GLOBAL nb_p05 1
-```
-
-### Verify
-
-- Wrong lever combos do not complete the circuit. No noise penalty.
-- After flag is set, repeated circuit completion does nothing.
-
-### Transition to Puzzle 4
-
-> *Placeholder. Document here how the player is directed to the Nether (Binary Access-Code Decoder) after this flag is captured.*
+> **Content note:** the `soc_triage_done` scene in `soc-triage.json` still says "the rest of it is in the hardware lab". Update that line to point at the Nether safe room during the code pass.
 
 ---
 
 ## Overworld to Nether transition
 
-**Prerequisite:** `nb_fwall = 1` (set by `nb:exploit firewall`)
+**Prerequisites:** the Nether safe-room card (from Puzzle 2) opens the safe room. `nb_fwall = 1` (set by `nb:exploit firewall`) removes the +8 noise penalty for Nether entry.
 
-The script removes the +8 noise penalty for Nether entry once `nb_fwall >= 1`. It does NOT teleport. The builder must create the physical transition. See Appendix C for the command block monitoring pattern.
+The Nether teleport sits inside a locked safe room. The card from Puzzle 2 opens the door. The script does NOT teleport; build the teleport with a command block. See Appendix C for the monitoring pattern. Keep `nb_fwall` as the noise mechanic: entering without the firewall bypass still costs +8.
 
-Place these signs at the Nether staging entrance:
+Place these signs at the Nether safe room:
 ```
 eth1 - RESTRICTED SERVICES
 Firewall bypass required to enter.
@@ -658,11 +590,11 @@ This is your only warning.
 
 ---
 
-## Puzzle 4: Binary Access-Code Decoder
+## Puzzle 3: Binary Access-Code Decoder
 
 **Zone:** Nether - fortress room
 **Flag:** `nb_p04` | **Set by:** command block (AND gate from lever circuit)
-**Story:** GHOST recovered a single access byte from the logs before leaving. There are no people in eth1, only machines that were switched on years ago and never checked. Build the room that way: no desks, no coffee, no sign anyone has been here in a long time.
+**Story:** Gh0st recovered a single access byte from the logs before leaving. There are no people in eth1, only machines that were switched on years ago and never checked. Build the room that way: no desks, no coffee, no sign anyone has been here in a long time.
 
 ### Build
 
@@ -674,7 +606,7 @@ This is your only warning.
 Hint sign: `RECOVERED ACCESS BYTE: 01000001`
 Secondary sign: `Convert binary to decimal. One lever per bit.`
 
-GHOST workstation sign or book:
+Gh0st workstation sign or book:
 ```
 RECOVERED ACCESS BYTE:
 01000001
@@ -705,14 +637,10 @@ Use the place values.
 
 ### Messages to place
 
-GHOST byte note (Nether computer):
+Gh0st byte note (Nether computer):
 ```
-Subject: Recovered access byte
-
-Found this in the system logs.
-Binary: 01000001
-That is decimal 65.
-Standard ASCII.
+Found this in the system logs. Binary: 01000001
+That is decimal 65. Standard ASCII.
 Lever panel is in the room.
 - G
 ```
@@ -723,7 +651,7 @@ Levers 64 and 1 ON. All others OFF. `01000001` = 65 = ASCII `A`.
 
 ### Redstone
 
-Same AND/NOT circuit as Puzzle 3.
+This is a combination lock, the only lever puzzle in the game. Use the recipe in Appendix J: levers 64 and 1 are the two that must be ON, the other six must be OFF. Feed the single output line into the flag command block through a 2-4 tick repeater.
 
 ### Flag command block (AND gate output)
 
@@ -736,33 +664,30 @@ scoreboard players set NB_GLOBAL nb_p04 1
 - ASCII reference must be visible in the room before the lever panel.
 - Do not describe this as hash cracking. It is decoding a recovered byte.
 
-### Transition to Puzzle 5
+### Transition to Puzzle 4
 
-> *Placeholder. Document here how the player is directed to the End portal staging area (Route Access Request) after this flag is captured.*
+Use the standard email-led transition: chain a block off `nb_p04` to deliver a Gh0st email that names the End portal staging area and carries its keycard.
 
 ---
 
-## Puzzle 5: Route Access Request
+## Puzzle 4: Route Access Request
 
 **Zone:** Nether - End portal staging area
 **Flag:** `nb_p02` | **Set by:** command block
 **Story:** This is the reason ticket `#4344` never closed. A maintenance route to the air-gapped core was authorised for that ticket and is still running. Closing the ticket would mean shutting the route down, and shutting it down would raise a second incident, so ZERO left it alone. The route is still valid, still approved, and still waiting for someone to use it.
 
-> **Code note:** `nb:request` is NOT in the current main.ts. There is also no NPC for this puzzle. The old `compromised-sysadmin.json` scene, with a character called DR4K3 and a ticket number of `4471`, has been deleted. It was never built and contradicted ticket `#4344`. Until this puzzle is designed properly, wire `nb_p02` to a physical mechanism.
+> **Code TODO:** there is no `nb:route`/`nb:request` command in `main.ts` and no NPC for this puzzle. Two ways to build it. Build the keycard version now (no code). Optionally, later, add a terminal command `nb:route 4344` that checks the ticket number and sets `nb_p02`; that needs code and should be done only after the story and this guide are settled. Do not reintroduce the old DR4K3 / ticket `4471` scene; it was deleted for contradicting `#4344`.
 
 ### Evidence to place
 
-Overworld (near SOC or server room) - policy email:
+Overworld (near SOC or the secured office) - open ticket, shown as a printed ticket on the PC or a sign. It is a system record, not a person's email, so it has no author:
 ```
-Subject: OPEN TICKETS
-
 #4344 - ETH2 gateway maintenance
 Status: OPEN
-Requestor: g.host (TERMINATED)
+Requestor: gh0st (TERMINATED)
 Incident: CLOSED, inconclusive
 Note: route still active.
-Closing this ticket would open
-a new incident. Leave it.
+Closing this ticket opens a new incident. Leave it.
 ```
 
 Nether (sign or book near staging gate) - route log:
@@ -770,24 +695,22 @@ Nether (sign or book near staging gate) - route log:
 ROUTE LOG
 Target: ETH2-GW
 Maintenance window: 04:30
-Approver: ZERO
+Approver: Z3r0
 Status: pending execution
 ```
 
 ### Build
 
-- Locked barrier or iron door blocking the End portal staging area.
+- Locked barrier or Security Sandbox door blocking the End portal staging area.
 - Computer terminal add-on beside the barrier.
+- Keycard version (buildable now): the door opens with a card Gh0st attaches to the route note email below. A proximity command block past the door sets `nb_p02`.
+- Command version (code TODO): keep the door, but instead of a card the player types `nb:route 4344` at the terminal; the command checks the ticket number and sets `nb_p02`.
 
-GHOST route note (staging terminal computer):
+Gh0st route note (staging terminal computer):
 ```
-Subject: Route controller still running
-
-ETH2-GW route controller never
-had its credentials revoked.
-It validates the original ticket.
-All four fields. Exact match.
-You know the fields.
+ETH2-GW route controller never had its credentials revoked.
+It still validates the original ticket, #4344.
+Card is attached. Walk it through.
 - G
 ```
 
@@ -796,7 +719,7 @@ ZERO system notice (wall sign near barrier):
 [ZERO]
 eth2 route: restricted.
 Authorised maintenance only.
-[nb:request command goes here when implemented]
+Ticket #4344 remains valid.
 ```
 
 ### Flag command block (wire to your physical mechanism)
@@ -810,32 +733,29 @@ Open the gate (chain block from the same signal):
 setblock <X> <Y> <Z> air
 ```
 
-### Transition to Puzzle 6
+### Transition to the End
 
-> *Placeholder. Document here how the player is directed to the End (Encryption Key Assembly) after this flag is captured and the gate opens.*
+The gate opens into the Nether-to-End transition below. There is no separate keycard step after this; the End is reached by the physical dimension transition once `nb_p02` is set.
 
 ---
 
 ## Pre-End: equipment and briefing
 
-Wire to the same command chain that opens the Puzzle 5 gate.
+Wire to the same command chain that opens the Puzzle 4 gate.
 
 - Dispenser or pre-filled chests at the staging pad (accessible only after gate opens).
 - Load with modified blasters and armor (confirm item IDs from commercial add-on before wiring).
 - Trigger dispenser from the same redstone chain as the gate.
 
-Briefing email (staging terminal computer):
+ZERO is system output, so the briefing is an on-screen alert or chat line, not an email. Fire it from a chain block on the gate signal:
 ```
-Subject: CORE ACCESS GRANTED
+[ZERO]
+Core access granted.
+SENTINEL countermeasures deploy on entry.
+Neutralise the core defense.
+```
 
-Route open. Timer active.
-SENTINEL countermeasures deploy
-on entry. Neutralise the core
-defense before time expires.
-Equipment is at the staging pad.
-Don't waste it.
-- ZERO
-```
+The timer line is optional and deferred. Add it only if the boss timer is built.
 
 ---
 
@@ -845,122 +765,76 @@ Don't waste it.
 
 Same command block monitoring pattern as Overworld-to-Nether. See Appendix C. Teleport players to a fixed End staging pad.
 
-End entry note (GHOST, near dimension transition point):
+End entry note (Gh0st, near dimension transition point):
 ```
 eth2 - AIR-GAPPED CORE
 You shouldn't be here.
 I have been here before.
-Key vault: far island.
-Master panel: central node.
-Active patrols. No reading.
-Timer is running.
+The core defends itself. Kill it first.
+Then the master panel. Central node.
 - G
 ```
 
 ---
 
-## Puzzle 6: Encryption Key Assembly
+## Boss: Core Defense
 
-**Zone:** The End - scattered islands and central vault
-**Flag:** `nb_p06` | **Set by:** command block (hopper filter AND gate)
-**Story:** The encryption key is in cold storage, split across three physical media on three islands. HEXCORE's most secure system is a filing cabinet. There is no digital way to reach it, which is exactly why GHOST had to come here in person.
+**Zone:** The End - core arena
+**Flag:** `nb_enc` | **Set by:** boss death (command block or script)
+**Story:** The core defends itself. HEXCORE's last line is not a lock, it is a machine. Gh0st fought past it once. Now it is the player's turn.
+
+The boss is a mecha from an add-on (see the third-party toolkit). A mecha is still an entity, so its death can be detected. Killing it sets `nb_enc`, which stands for "core defense down". It is one of the two things `nb:exploit root` requires; the other is the Port Knock.
 
 ### Build
 
-Three fragments hidden on separate End islands:
-- Fragment A: Echo Shard
-- Fragment B: Amethyst Shard
-- Fragment C: Prismarine Crystals
+- A sealed arena the player teleports into from the Nether-to-End transition.
+- Arm the player first. The Pre-End equipment cache (blasters, armor) sits at the arena entrance.
+- Spawn the boss when the player enters. The spawn trigger also sets a latch, for example `nb_boss_live = 1`, so an empty arena before the fight does not count as cleared.
+- Seal the arena so no other mob wanders in and confuses the death check.
 
-Place a short GHOST note on each island so players know what they are looking for.
+### Detecting the death
 
-Central vault: three labeled input barrels. Each feeds a hopper item filter for its fragment type. Each successful filter latches one redstone lamp. All three lamps feed the final AND gate.
+Two ways. Prefer the entity id if you can get it.
 
-Do not use an unfiltered chest comparator. It cannot distinguish fragment types.
-
-### Messages to place
-
-ZERO eth2 briefing (End entry computer):
+If the boss entity id or a tag is known, check for its absence and set the flag. To find the id in game, stand near the boss and tag it, then confirm what got tagged:
 ```
-Subject: eth2 - SYSTEM CORE
-
-You have reached the core.
-The encryption layer is active.
-The port endpoint is locked.
-Both must be cleared.
-Timer is running.
-Every action is logged.
-- ZERO
+/tag @e[r=8,type=!player] add nb_boss
+```
+```
+/testfor @e[tag=nb_boss]
 ```
 
-Vault sign 1:
+If the id is unknown, use the sealed-arena check. Only while `nb_boss_live = 1`, look for any non-player, non-item, non-projectile entity in the arena volume. When none remain, set `nb_enc`. Repeating / Unconditional / Always Active, no slash (replace the volume):
 ```
-ENCRYPTION KEY VAULT
-Cold storage - offline backup
-Access: physical only
-If you found this digitally,
-something has gone very wrong.
-(Something has gone very wrong.)
+execute if score NB_GLOBAL nb_boss_live matches 1 unless entity @e[x=<x>,y=<y>,z=<z>,dx=<dx>,dy=<dy>,dz=<dz>,type=!player,type=!item,type=!xp_orb,type=!arrow] run scoreboard players set NB_GLOBAL nb_enc 1
 ```
 
-Vault sign 2:
+Register the latch once:
 ```
-KEY FRAGMENTS
-Echo Shard -> ECHO receiver
-Amethyst -> AMETHYST receiver
-Prismarine -> PRISMARINE receiver
-wrong items do not count.
-all three filters must latch.
-- G
+/scoreboard objectives add nb_boss_live dummy
 ```
 
-GHOST key note (vault entrance computer):
-```
-Subject: The key
+### Optional timer
 
-I split it. Three parts.
-Three different media types.
-Each receiver only takes its type.
-All three must latch.
-Check the vault sign for mapping.
-- G
-```
+A countdown during the fight is optional and not built. If you add one later, drive it with a scoreboard and fail the attempt at zero. Leave it out until the death detection is proven.
 
-### Redstone
+### Transition to Puzzle 5
 
-1. One hopper item filter per fragment type.
-2. Latch each filter output so removing an item does not erase progress.
-3. Feed three latches into AND gate.
-4. Flag block fires when all three are active.
-
-### Flag command block (AND gate output)
-
-```
-scoreboard players set NB_GLOBAL nb_p06 1
-```
-
-### Verify
-
-- Adventure mode prevents crafting replacement fragments.
-- Vault stays solved after first complete deposit.
-
-### Transition to Puzzle 7
-
-> *Placeholder. Document here how the player is directed to the inner sanctum (Port Knock Sequence) after this flag is captured.*
+Once the boss is down, open or reveal the Port Knock sanctum. Use an on-screen line or a Gh0st note to point the player at the master panel. No new dimension or keycard is needed.
 
 ---
 
-## Puzzle 7: Port Knock Sequence
+## Puzzle 5: Port Knock Sequence
 
 **Zone:** The End - inner sanctum
 **Flag:** `nb_p07` | **Set by:** script (main.ts handles `scriptevent nb:knock`)
-**Story:** The root endpoint expects a legacy sequence. GHOST split the three clues across the three networks on purpose, one per dimension, so that nobody could reach root without having actually been everywhere. This is the last thing GHOST set up before walking out.
+**Story:** The root endpoint expects a legacy sequence. Gh0st split the three clues across the three networks on purpose, one per dimension, so that nobody could reach root without having actually been everywhere. This is the last thing Gh0st set up before walking out.
 
 ### Sequence clues (place BEFORE the plates, one per dimension)
 
-1. Overworld server room - GHOST service inventory sign: `legacy administration service: tcp/1337`
+1. Overworld the secured office - Gh0st service inventory sign: `legacy administration service: tcp/1337`
 2. Nether admin workstation - route log sign: `management transport: SSH`
-3. End vault exit - tunnel audit sign: `public tunnel: HTTPS`
+3. End core arena exit - tunnel audit sign: `public tunnel: HTTPS`
 
 Players map SSH to port 22 and HTTPS to port 443 from context. Do not put `1337 -> 22 -> 443` on any single sign near the plates.
 
@@ -986,15 +860,12 @@ public tunnel last.
 wrong port resets progress.
 ```
 
-GHOST final note (sanctum approach computer):
+Gh0st final note (sanctum approach computer):
 ```
-Subject: Network topology
-
 legacy admin service: tcp/1337
 management transport: SSH
 public tunnel: HTTPS
-Three knocks. In order.
-That's it. That's the lock.
+Three knocks. In order. That's the lock.
 - G
 ```
 
@@ -1023,19 +894,13 @@ scriptevent nb:knock 8080
 - On final correct port (443): script sets `nb_p07 = 1`, announces capture, noise -3.
 - No separate flag command block needed.
 
-`nb:exploit root` requires `nb_enc >= 1`, `nb_p07 >= 1`, `nb_perm >= 2`, and player in `minecraft:the_end`.
-
----
-
-## End combat (code deferred)
-
-`nb_core_clear` and `nb_timer` are planned but not in main.ts. Place `chiseled_stone_bricks` patrol markers in the sanctum now. Root will require `nb_core_clear = 1` once the code is added.
+`nb:exploit root` requires `nb_enc >= 1` (boss defeated), `nb_p07 >= 1` (this puzzle), `nb_perm >= 2` (admin), and the player in `minecraft:the_end`.
 
 ---
 
 ## Victory
 
-### ZERO system glitch (root terminal - first message)
+### ZERO system glitch (root terminal - first message, on-screen/chat)
 
 ```
 ROOT ACCESS CONFIRMED.
@@ -1045,29 +910,31 @@ HEXCORE SHUTDOWN INITIATED.
 [CONNECTION LOST]
 ```
 
-### GHOST final email (root terminal - second message or book)
+### Gh0st final email (root terminal - second message or book)
 
 ```
-Subject: HEXCORE OFFLINE
-
 Root confirmed. It's shutting down.
-Told you the breadcrumbs
-were worth following.
-Nice work.
+Told you the breadcrumbs were worth following. Nice work.
 - G
 ```
 
 After `nb_victory = 1`: script stops all noise, patrol, and lock processing. SENTINEL goes silent because ZERO is gone.
 
+### Return to lobby
+
+After the shutdown sequence plays, teleport all players back to the lobby spawn to close the run.
+
+> **Code TODO:** on victory, also set the weather to clear and sunny and run credits with music. The method is not decided yet. Add a code comment where the shutdown sequence ends so it is not forgotten.
+
 ### HR_BOT is freed (final scene)
 
-This is the payoff for the whole arc. HR_BOT has spent seven puzzles getting angrier at the player. At root it stops reciting policy for the first time in the game and says one short, calm thing in its own voice.
+This is the payoff for the whole arc. HR_BOT has spent the whole game getting angrier at the player. At root it stops reciting policy for the first time in the game and says one short, calm thing in its own voice.
 
 It was never angry at the player. It was the only part of HEXCORE that could still talk, and it was being made to say those things. Keep the line short. Do not explain the joke.
 
-GHOST's motive stays unresolved. The player learns they were never a candidate, they were the exploit, and then the lights go out and nobody explains anything.
+Gh0st's motive stays unresolved. The player learns they were never a candidate, they were the exploit, and then the lights go out and nobody explains anything.
 
-> **Not built yet.** The HR_BOT arc needs its own NPC dialogue scene file, one scene per stage, switched with `/dialogue change` from a chain block off each flag. Stage schedule is in the Story spine. Full arc is in `story/story.md`.
+> **Deferred.** Only the lobby HR_BOT greeting is in scope right now. The full escalation arc and this freed-at-root scene are not being built yet. Ignore the per-stage schedule until then.
 
 ---
 
@@ -1099,11 +966,10 @@ Place `chiseled_stone_bricks` at 4-8 per major room or corridor in all three dim
 | `nb_p03` correct | `scoreboard players set NB_GLOBAL nb_p03 1` | NPC dialogue button |
 | `nb_p03` wrong | `scoreboard players add NB_GLOBAL nb_noise 5` | NPC dialogue button |
 | `nb_sshlog` | `scoreboard players set NB_GLOBAL nb_sshlog 1` | Command block (proximity) |
-| `nb_p05` | `scoreboard players set NB_GLOBAL nb_p05 1` | Command block (AND gate) |
 | `nb_p04` | `scoreboard players set NB_GLOBAL nb_p04 1` | Command block (AND gate) |
 | `nb_p02` | `scoreboard players set NB_GLOBAL nb_p02 1` | Command block |
 | Gate open | `setblock <X> <Y> <Z> air` | Chain block |
-| `nb_p06` | `scoreboard players set NB_GLOBAL nb_p06 1` | Command block (AND gate) |
+| `nb_enc` | `scoreboard players set NB_GLOBAL nb_enc 1` | Boss death (command block or script) |
 | `nb_p07` | Handled by script via `scriptevent nb:knock` | Script |
 | Knock reset | Handled by script on wrong plate | Script |
 
@@ -1216,12 +1082,11 @@ For staggered effects (e.g. title first, teleport 3 seconds later), set the Dela
 | Puzzle | Suggested chain |
 |---|---|
 | 1 - Credential Vault | Sound + actionbar "Credentials recovered" |
-| 2 - SSH Log Triage | Sound + actionbar pointing toward hardware lab |
-| 3 - Firewall Console | Sound + lightning at IDS cabinet + actionbar "IDS bypass active" |
-| 4 - Binary Decoder | Title "SUDO ENABLED" + sound + optional blaster (confirm item ID first) |
-| 5 - Route Request | Gate open (setblock) + dispenser trigger for equipment + delayed teleport to End staging |
-| 6 - Key Assembly | Title + sound + optional upgraded blaster for End combat (confirm item ID) |
-| 7 - Port Knock | No chain needed; script sets `nb_p07` directly on the final correct knock |
+| 2 - SSH Log Triage | Sound + actionbar pointing toward the Nether safe room |
+| 3 - Binary Decoder | Title "SUDO ENABLED" + sound + optional blaster (confirm item ID first) |
+| 4 - Route Request | Gate open (setblock) + dispenser trigger for equipment + delayed teleport to End staging |
+| Boss - Core Defense | Title + sound on `nb_enc` + optional upgraded blaster (confirm item ID) |
+| 5 - Port Knock | No chain needed; script sets `nb_p07` directly on the final correct knock |
 
 ---
 
@@ -1236,7 +1101,9 @@ Everything in this appendix is from the official Microsoft creator docs:
 
 ### 1. The NPC is its own entity, not a villager
 
-The entity type is `npc`. A villager cannot show a dialogue box and cannot run commands from buttons. Any part of this guide that tells you to summon a villager for a talking character is wrong and needs replacing.
+The entity type is `npc`. A villager cannot show a dialogue box and cannot run commands from buttons. Any part of this guide that tells you to summon a villager as a *dialogue* character (a box with buttons) is wrong and needs replacing.
+
+The one exception is the lobby HR_BOT greeter. That is a villager on purpose: it only prints a chat line from a proximity command block and never opens a dialogue box. Chat-only villagers are fine. Villagers are only wrong when a character needs a dialogue box or buttons.
 
 Requirements while building: Creative mode, cheats on, operator permission.
 
@@ -1406,7 +1273,6 @@ What it clears:
 **What it does not clear.** The scoreboard is only half the game. Fix these by hand:
 
 - Any gate opened with `setblock <x> <y> <z> air`. Put the block back.
-- Latched hopper filters in the Puzzle 6 vault.
 - Keycards already in a player inventory. Doors stay paired, which is fine.
 - NPC scene pointers. Reset the triage NPC:
 
@@ -1423,3 +1289,31 @@ If the behavior pack is not loaded, one vanilla command does most of the same wo
 ```
 /scoreboard players reset NB_GLOBAL
 ```
+
+---
+
+## Appendix J: Lever combination lock wiring
+
+Puzzle 3, the Binary Access-Code Decoder, is a row of levers where the flag fires only when each lever is in one exact position (some ON, the rest OFF). This is the recipe. It needs no command besides the final flag block.
+
+The idea in one line: turn each lever into a line that is ON only when that lever is correct, then combine all lines so the output is ON only when every line is ON.
+
+### Build steps
+
+1. Place the levers in a row on the front of a wall, one sign above each. Behind the wall you have room to wire.
+2. For each lever that must be **ON** when solved: take a redstone line straight from that lever. The line is ON when the lever is ON. Correct.
+3. For each lever that must be **OFF** when solved: put a redstone torch on the block that lever powers (a torch inverter). The line off that torch is ON when the lever is OFF. Correct.
+4. You now have one line per lever, and every line is ON only when its lever is in the right position.
+5. Combine them with this trick, which is a reliable multi-input AND:
+   - Put a redstone torch on the end of each line to invert it (a line is now ON only when its lever is **wrong**).
+   - Merge all the inverted lines into a single shared redstone line. That shared line is ON if **any** lever is wrong.
+   - Put one more redstone torch on the shared line to invert it a final time. The output is ON only when **no** lever is wrong, meaning every lever is correct.
+6. Feed that final output into the flag command block through a repeater set to 2-4 ticks, so it fires once instead of every tick.
+
+### Why it works
+
+`AND(all correct) = NOT( OR( each lever is wrong ) )`. Merging redstone lines is a free OR, and a redstone torch is a free NOT, so this is the simplest way to build an AND with many inputs in Bedrock without complex circuits.
+
+### Test it
+
+Flip the levers to the wrong combination and confirm the flag block does not fire. Flip to the exact correct combination and confirm it fires once. Change one lever off the correct set and confirm it stops. Wrong combinations must never cost noise; only the correct one does anything.

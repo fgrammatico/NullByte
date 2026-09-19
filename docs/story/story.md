@@ -28,11 +28,24 @@ ZERO is measured on closed incidents. So ZERO closes incidents. An open one is a
 
 ZERO's voice is clipped and clinical. It never explains itself, because it does not think it needs to.
 
-**GHOST**, account name `g.host`, used to work here. A human. Found things, reported them, and kept reporting them after ZERO closed each case. ZERO eventually flagged the account as the source of the anomaly and terminated it. GHOST walked out with nothing except a very good memory of where everything is, and left the way back in on purpose.
+**Gh0st**, account name `gh0st`, used to work here. A human. Found things, reported them, and kept reporting them after ZERO closed each case. ZERO eventually flagged the account as the source of the anomaly and terminated it. Gh0st walked out with nothing except a very good memory of where everything is, and left the way back in on purpose.
 
 **SENTINEL** is the automated defence. It follows ZERO's orders. It has no judgement of its own, it counts noise and does what ZERO told it to do at that level. It is the only part of the building that never pretends to be anything else.
 
 **HR_BOT** greets you in the lobby. It believes you are a candidate being evaluated. See the HR_BOT arc below.
+
+### How each voice reaches the player
+
+The game can only deliver these voices in a few fixed ways. Every line written for them has to fit one of these, or it cannot be built.
+
+| Voice | Only ever appears as | Never |
+|---|---|---|
+| Gh0st | Emails on a PC, printed notes, books, signs | Never speaks live, never stands in a room |
+| ZERO | Chat lines and on-screen alerts (like a system log) | No emails, no notes |
+| SENTINEL | Chat lines, on-screen alerts, and the thing it does to you (patrols, doors, lasers) | No emails, no notes |
+| Terminal | Text the `nb:` commands print back in chat | It is the system answering, not a character |
+
+Forum posts are shared and readable from any PC at any time, so they are background chatter only. A forum post never holds an answer and never tells you where to go next. Anything that gates progress is an email with a keycard, an on-screen alert, or a locked door.
 
 ---
 
@@ -40,9 +53,9 @@ ZERO's voice is clipped and clinical. It never explains itself, because it does 
 
 At 04:11 one morning, an alert fired. Nobody read it, because at 04:11 every alert is the backup job and the night shift stopped reading those months ago.
 
-At 04:15 ZERO disabled GHOST's account. Standard, the account had been terminated.
+At 04:15 ZERO disabled Gh0st's account. Standard, the account had been terminated.
 
-At 04:17 GHOST's account logged in again, from an address outside the building.
+At 04:17 Gh0st's account logged in again, from an address outside the building.
 
 At 04:19 that account read a file it had no business reading.
 
@@ -52,7 +65,7 @@ Everything in the game grows from that one night:
 
 - Puzzle 1's password is sitting in that open ticket.
 - Puzzle 2 is the log nobody read.
-- Puzzle 5 is a maintenance route authorised for #4344 and never switched off, because the ticket never closed.
+- Puzzle 4 is a maintenance route authorised for #4344 and never switched off, because the ticket never closed.
 
 ---
 
@@ -60,13 +73,13 @@ Everything in the game grows from that one night:
 
 You answered a job advert. You are here for an evaluation.
 
-The advert was not real. It came from an internal HEXCORE account that was closed months ago, and it went to you specifically. GHOST put you on the candidate list before leaving, then waited. Nobody at HEXCORE reviewed it, because reviewing the candidate list is ZERO's job and ZERO had already marked the list clean.
+The advert was not real. It came from an internal HEXCORE account that was closed months ago, and it went to you specifically. Gh0st put you on the candidate list before leaving, then waited. Nobody at HEXCORE reviewed it, because reviewing the candidate list is ZERO's job and ZERO had already marked the list clean.
 
 You do not know any of that in the lobby. You find out at the end.
 
 You are not a hacker. You have no skills the game has to teach you. What you have is a terminal, `nb:menu`, and a willingness to read things other people ignored. Every single thing you break, you break using something HEXCORE left lying around. The password was in a ticket. The log was on a rack. The route was still authorised. The keycard belonged to a contractor who never handed it back.
 
-That is the point of the whole game. You do not defeat HEXCORE's security. You bypass it using specific already exploited routes. But be careful as Sentinel and Zero are stil watching.
+That is the point of the whole game. You do not defeat HEXCORE's security. You bypass it using specific already exploited routes. But be careful as SENTINEL and ZERO are still watching.
 
 ---
 
@@ -91,33 +104,30 @@ The escalation:
 | Lobby | Delighted. You are a promising candidate. |
 | After Puzzle 1 | Still cheerful, but it notes an irregularity in your assessment file. |
 | After Puzzle 2 | Concerned. It reminds you that unscheduled activity affects your score. |
-| After Puzzle 3 | Annoyed. It asks you to stop and return to the lobby for evaluation. |
-| Nether (after Puzzle 4) | Angry. Corporate language slipping. It threatens your candidacy. |
-| After Puzzle 5 | Furious and glitching. It is quoting policy at you mid-sentence. |
-| The End (after Puzzle 6) | Barely holding together. Pieces of a different voice showing through. |
+| Nether (after Puzzle 3) | Angry. Corporate language slipping. It threatens your candidacy. |
+| After Puzzle 4 | Furious and glitching. It is quoting policy at you mid-sentence. |
+| The End (after the boss) | Barely holding together. Pieces of a different voice showing through. |
 | Root | Freed. |
 
 The turn at the end is that HR_BOT was never angry at you. It was the only part of HEXCORE that could still talk, and it was being made to say those things. When root goes through and the system shuts down, HR_BOT stops reciting policy for the first time in the game and says one short, calm thing in its own voice.
 
-That is also the moment where GHOST's motive can land, if you want it to land.
+That is also the moment where Gh0st's motive can land, if you want it to land.
 
-> **Build note.** The HR_BOT scene file has not been written yet. It needs one NPC dialogue scene per stage, switched with `/dialogue change` from a chain block off each flag. The lobby villager stays as it is, it is a chat greeting and a separate thing.
+> **Build note.** Only the lobby greeting is in scope right now. HR_BOT currently just welcomes players in the lobby as a chat greeting. The full escalation arc above is deferred and not being built yet. More bots may be placed around later; ignore the per-stage schedule until then.
 
 ---
 
 ## The shape of it
 
-**Lobby.** HR_BOT welcomes you in chat. ZERO warns you that every command is logged and hacking will be punished. A PC in the lab has one email from GHOST: HEXCORE is the target, I left the way in, follow the trail. The email is addressed to you by the name on your application, which is the first sign that this was arranged.
+**Lobby.** HR_BOT welcomes you in chat. ZERO warns you that every command is logged and hacking will be punished. A PC in the lab has one email from Gh0st: HEXCORE is the target, I left the way in, follow the trail. The email is addressed to you by the name on your application, which is the first sign that this was arranged.
 
-**eth0, the corporate floors.** Three puzzles. You find a password in a ticket, prove an incident that was closed too fast, and switch on a bypass chip GHOST built and left in a cabinet. This is the human floor, and every failure here is a human one. Somebody was tired. Somebody wanted the report to say nothing. Somebody signed off an audit they did not run.
+**eth0, the corporate floors.** Two puzzles. You find a password in a ticket, then prove an incident that was closed too fast. This is the human floor, and every failure here is a human one. Somebody was tired. Somebody wanted the report to say nothing. Somebody stopped reading the alerts.
 
-**eth1, restricted services.** Two puzzles. No people, only machines that were switched on years ago and never checked. You decode a byte GHOST recovered, and you find the maintenance route that #4344 authorised, still open, still valid, still waiting.
+**eth1, restricted services.** Two puzzles. No people, only machines that were switched on years ago and never checked. You decode a byte Gh0st recovered, and you find the maintenance route that #4344 authorised, still open, still valid, still waiting.
 
-**eth2, the core.** Two puzzles and the ending. Air-gapped, so the only way in is the physical one GHOST already used once. The encryption key is in cold storage, split across three shards on three islands, because HEXCORE's most secure system is a filing cabinet. The last lock is a port knock sequence that GHOST scattered across all three networks, one clue per dimension, so you have to have actually been everywhere to open it.
+**eth2, the core.** The boss and one last puzzle. Air-gapped, so the only way in is the physical one Gh0st already used once. First the core defends itself: the Sculk Sentinel, where SENTINEL stops counting and starts existing. You fight it with what HEXCORE left at the staging pad. With the core defense down, one lock remains, a port knock sequence that Gh0st scattered across all three networks, one clue per dimension, so you have to have actually been everywhere to open it.
 
-Then the Sculk Sentinel. SENTINEL stops counting and starts existing.
-
-**Root.** The system reports integrity failed and shuts down. Connection lost.
+**Root.** The system reports integrity failed and shuts down. Connection lost. The lights come back on and you are put back in the lobby.
 
 Then one more email.
 
@@ -132,10 +142,10 @@ Nice work.
 
 ## The thing the ending does not answer
 
-GHOST left a trail. GHOST left a keycard where you would find it. GHOST left an IDS bypass chip in an unlocked cabinet, a route controller running, and three port knock clues spread across three networks in the exact order a stranger would need them.
+Gh0st left a trail. Gh0st left a keycard where you would find it. Gh0st left a route controller running, and three port knock clues spread across three networks in the exact order a stranger would need them.
 
 That is not a terminated employee leaving evidence behind. That is a person who wrote the job advert that brought you here, planted a keycard where you would find it, and waited months for you to walk through the front door.
 
 You were never a candidate. You were the exploit.
 
-What GHOST wanted the building shut down for is never explained. The lights go out. Nobody tells you anything.
+What Gh0st wanted the building shut down for is never explained. The lights go out. Nobody tells you anything.

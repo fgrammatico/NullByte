@@ -2,6 +2,8 @@
 
 This is the single reference for how the behavior pack and shared state work. It consolidates the former `private/implementation_plan.md`, `private/planning/implementation-roadmap.md`, `private/content/narrative-spoilers.md`, `private/scoring/evaluation_criteria.md`, and `private/docs/minecraft_concepts.md`. Puzzle construction and flag wiring live in [`PUZZLE_GUIDE.md`](PUZZLE_GUIDE.md); testing commands and launch checks live in [`OPS.md`](OPS.md).
 
+> **End redesign pending.** The game is being reshaped: the Firewall Rules Console puzzle (`nb_p05`, `nb:exploit ids`) and the Encryption Key Assembly puzzle (`nb_p06`, `nb:exploit encryption`) are being removed, and the End boss will set `nb_enc`. The command, flag, and noise tables below still describe the shipped `main.ts` and will be updated when that code lands. The narrative section at the end reflects the new design.
+
 ---
 
 ## 1. Architecture
@@ -170,7 +172,7 @@ Do not test flag capture after `nb_victory` is `1`; victory stops normal flag mo
 - BREACH clears permission but preserves every puzzle flag.
 - Encryption cannot complete Port Knock (they are independent gates).
 - Root cannot run until both encryption and Port Knock are complete.
-- An arbitrary item cannot satisfy a key-fragment receiver.
+- An arbitrary item cannot satisfy the key-shard count in the vault barrel.
 - Any wrong knock resets `nb_knock` and adds shared noise.
 - One player leaving or dying does not alter shared state.
 - Victory prevents any later patrol or lockout response.
@@ -195,7 +197,7 @@ HEXCORE is a technology company that sells security systems and is much worse at
 
 One night an alert fired that nobody read. A terminated account logged back in from outside the building, read a file it should not have, and the incident was closed with no action. Ticket `#4344` records it. Everything the players use to break in comes out of that one night.
 
-Players breach the network together, follow GHOST's trail, and gain root access to shut HEXCORE down. Chat is the portable terminal. Physical rooms, redstone puzzles, computer emails, NPC dialogue, and Script API commands form one connected path through the facility.
+Players breach the network together, follow Gh0st's trail, and gain root access to shut HEXCORE down. Chat is the portable terminal. Physical rooms, redstone puzzles, computer emails, NPC dialogue, and Script API commands form one connected path through the facility.
 
 ### Characters
 
@@ -203,13 +205,13 @@ Players breach the network together, follow GHOST's trail, and gain root access 
 
 - "The credential is in the server room. Yes, someone left a backup there."
 - "SENTINEL is not your enemy. Noise is the problem. SENTINEL is the response."
-- "You found the key fragments. Now prove you know where each one belongs."
+- "The core defends itself. Neutralise it, then find the port sequence."
 
-**GHOST**: a human. Former HEXCORE developer, account `g.host`. Reported problems, kept reporting them after ZERO closed each case, and was terminated for it. Left the way back in on purpose. Sample notes:
+**Gh0st**: a human. Former HEXCORE developer, account `gh0st`. Reported problems, kept reporting them after ZERO closed each case, and was terminated for it. Left the way back in on purpose. Sample notes:
 
 - "default creds were never rotated. ticket 4344 is still open."
-- "g.host was disabled at 04:15. check what happened two minutes later."
-- "eth2 key was split across three media types. filters matter."
+- "gh0st was disabled at 04:15. check what happened two minutes later."
+- "the core defends itself. i got past it once. you can too."
 
 **SENTINEL**: the automated defence. It follows ZERO's orders and has no judgement of its own. Shared noise controls its responses: WARNING deploys patrols; ALERT locks the terminal and patches an active firewall bypass; BREACH revokes shared permission and returns players to the Overworld; LOCKDOWN freezes noise decay.
 
@@ -217,13 +219,13 @@ Players breach the network together, follow GHOST's trail, and gain root access 
 
 ### The world
 
-- **Overworld (eth0)**: HEXCORE corporate campus: lobby, server room, security operations centre, and hardware lab. Players recover service credentials, correlate an unauthorized login, and configure a web-only firewall allowlist.
+- **Overworld (eth0)**: HEXCORE corporate campus: lobby, server room, and security operations centre. Players recover service credentials and correlate an unauthorized login.
 - **Nether (eth1)**: restricted internal-services segment. Players decode the binary access byte `01000001`, escalate to admin with `nb:sudo`, and gather evidence for the End route request.
-- **End (eth2)**: air-gapped System Core. Active patrols from entry. Players assemble three encryption key fragments, complete the Port Knock sequence `1337, 22, 443`, and execute root.
+- **End (eth2)**: air-gapped System Core. Active patrols from entry. Players defeat the Core Defense boss, complete the Port Knock sequence `1337, 22, 443`, and execute root.
 
 ### Ending
 
-A player in the System Core runs `nb:exploit root` after encryption is broken and Port Knock is complete. The script then:
+A player in the System Core runs `nb:exploit root` after the boss is defeated and Port Knock is complete. The script then:
 
 1. grants shared root permission;
 2. records persistent victory;
@@ -232,11 +234,11 @@ A player in the System Core runs `nb:exploit root` after encryption is broken an
 5. broadcasts the operator who executed the final command;
 6. leaves the terminal offline for further gameplay commands.
 
-ZERO's system output glitches on root. GHOST's final email confirms HEXCORE is offline. HR_BOT is freed. GHOST's motive is never explained.
+ZERO's system output glitches on root. Gh0st's final email confirms HEXCORE is offline. HR_BOT is freed. Gh0st's motive is never explained.
 
 ### Tone
 
-NullByte is designed for mixed groups: kids, adults, and anyone curious about security concepts. Clues reward observation and correlation. Wrong answers carry consequences, but every puzzle provides enough in-world evidence to solve it without guessing. GHOST's notes keep things from getting too serious.
+NullByte is designed for mixed groups: kids, adults, and anyone curious about security concepts. Clues reward observation and correlation. Wrong answers carry consequences, but every puzzle provides enough in-world evidence to solve it without guessing. Gh0st's notes keep things from getting too serious.
 
 ---
 
