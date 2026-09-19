@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.29
+
+- docs(release): document local behavior-pack build and package, fix packs path (919718e)
+
 ## 0.0.28
 
 - docs(docs): align mechanics.html and reshape End to boss-first across docs[patch] (783b827)
