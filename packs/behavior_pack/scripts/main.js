@@ -1182,6 +1182,9 @@ function onBandEscalation(from, to) {
         revokeToGuest();
         const overworld = world.getDimension("overworld");
         for (const player of world.getAllPlayers()) {
+            // Don't yank players out of the End mid-boss-fight.
+            if (player.dimension.id === "minecraft:the_end")
+                continue;
             player.teleport({ x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ }, { dimension: overworld });
         }
         // Spawn after the teleport so patrols land at the relocation point, not the abandoned breach site.
