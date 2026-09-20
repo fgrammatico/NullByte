@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.34
+
+- fix(main.ts): Remove nb_sshlog gate; SOC TRIAGE NPC opens straight to the question (e83e64f)
+
 ## 0.0.33
 
 - chore(main.ts): merge origin/main into main (7e8a270)
