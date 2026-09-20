@@ -631,7 +631,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.0.33]§r",
+            "§a[HEXCORE TERMINAL v0.0.35]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -1206,8 +1206,15 @@ function checkDimensionEntry(player) {
     if (!previousDimension || previousDimension === currentDimension)
         return;
     if (currentDimension === "minecraft:nether" && getScore(OBJ.fwall) < 1) {
-        addNoise(8);
-        world.sendMessage(`§c[SENTINEL]§r  ${player.name} entered the Nether before the firewall was bypassed. Noise +8.`);
+        setScore(OBJ.noise, Math.max(getScore(OBJ.noise), 75));
+        if (getScore(OBJ.perm) < PERM_USER) {
+            // Unauthenticated on top of no firewall bypass: heavier than a standard breach.
+            spawnMisusePatrols(player, 3, "BREACH");
+            world.sendMessage(`§4[SENTINEL]§r  ${player.name} entered the Nether unauthenticated. Heavy response deployed.`);
+        }
+        else {
+            world.sendMessage(`§c[SENTINEL]§r  ${player.name} entered the Nether before the firewall was bypassed. BREACH triggered.`);
+        }
     }
     if (currentDimension === "minecraft:the_end" && getScore(OBJ.p02) < 1) {
         addNoise(8);
