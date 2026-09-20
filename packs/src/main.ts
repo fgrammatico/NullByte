@@ -44,7 +44,6 @@ const NOISE_ALARM      = 100;  // full alarm — vex spawns, counter increments
 const LOCK_ALERT_TICKS = 10 * 20;
 const LOCK_BREACH_TICKS = 30 * 20;
 const LOCK_LOCKDOWN_TICKS = 60 * 20;
-const LOCKDOWN_BOSS_MOB = "minecraft:warden";
 
 const PERM_GUEST = 0;
 const PERM_USER = 1;
@@ -257,24 +256,24 @@ function getMisuseSpawnCount(level: number): number {
     case "CLEAN":
       return 0;
     case "WARNING":
-      return 1;
+      return 0;
     case "ALERT":
-      return 2;
-    case "BREACH":
-      return 3;
-    case "LOCKDOWN":
-      return 4;
-    default:
       return 1;
+    case "BREACH":
+      return 1;
+    case "LOCKDOWN":
+      return 2;
+    default:
+      return 0;
   }
 }
 
 function getPatrolMobForBand(band: NoiseBand): string {
   switch (band) {
     case "ALERT":
-      return "minecraft:vindicator";
+      return "minecraft:husk";
     case "BREACH":
-      return "minecraft:ravager";
+      return "minecraft:vindicator";
     case "LOCKDOWN":
       return "minecraft:vindicator";
     case "WARNING":
@@ -358,9 +357,11 @@ function spawnMisusePatrols(
   player: Player,
   count: number,
   band: NoiseBand,
-  includeLockdownBoss = true,
 ): void {
   if (count <= 0) return;
+  // No patrols in the End: keeps the boss fight fair and prevents a stray mob
+  // from blocking the sealed-arena boss death check.
+  if (player.dimension.id === "minecraft:the_end") return;
 
   const offsets = [
     { x: 12, z: 0 },
@@ -406,18 +407,7 @@ function spawnMisusePatrols(
     );
   };
 
-  let i = 0;
-
-  // LOCKDOWN includes one boss-tier spawn before support units.
-  if (band === "LOCKDOWN" && includeLockdownBoss) {
-    const spawn = getSpawnLocation(0);
-    if (spawn) {
-      spawnPatrolEntity(player, LOCKDOWN_BOSS_MOB, spawn.x, spawn.y, spawn.z);
-    }
-    i = 1;
-  }
-
-  for (; i < count; i++) {
+  for (let i = 0; i < count; i++) {
     const spawn = getSpawnLocation(i);
     if (spawn) {
       spawnPatrolEntity(player, primaryMob, spawn.x, spawn.y, spawn.z);
@@ -1280,6 +1270,7 @@ function handleKillPatrol(origin: CustomCommandOrigin): CustomCommandResult {
 
     const defenseTypes = new Set([
       "minecraft:zombie",
+      "minecraft:husk",
       "minecraft:vindicator",
       "minecraft:ravager",
       "minecraft:warden",
@@ -1351,11 +1342,11 @@ function getPatrolIntervalTicks(band: NoiseBand): number {
     case "WARNING":
       return 40 * 20;
     case "ALERT":
-      return 20 * 20;
+      return 30 * 20;
     case "BREACH":
-      return 10 * 20;
+      return 20 * 20;
     case "LOCKDOWN":
-      return 10 * 20;
+      return 15 * 20;
     case "CLEAN":
     default:
       return 0;
@@ -1365,13 +1356,13 @@ function getPatrolIntervalTicks(band: NoiseBand): number {
 function getScheduledPatrolCount(band: NoiseBand): number {
   switch (band) {
     case "WARNING":
-      return 3;
+      return 1;
     case "ALERT":
-      return 6;
+      return 2;
     case "BREACH":
-      return 12;
+      return 2;
     case "LOCKDOWN":
-      return 20;
+      return 2;
     case "CLEAN":
     default:
       return 0;
@@ -1388,7 +1379,7 @@ function spawnSharedPatrols(count: number, band: NoiseBand): void {
     const playerCount = baseCount + (remainder > 0 ? 1 : 0);
     if (remainder > 0) remainder--;
     if (playerCount <= 0) continue;
-    spawnMisusePatrols(players[index], playerCount, band, index === 0);
+    spawnMisusePatrols(players[index], playerCount, band);
   }
 }
 
@@ -1405,20 +1396,20 @@ function onBandEscalation(from: NoiseBand, to: NoiseBand): void {
   }
 
   if (to === "WARNING") {
-    spawnSharedPatrols(3, "WARNING");
+    spawnSharedPatrols(2, "WARNING");
     world.sendMessage("§e[SENTINEL]§r  Warning threshold reached.");
     return;
   }
 
   if (to === "ALERT") {
-    spawnSharedPatrols(6, "ALERT");
+    spawnSharedPatrols(3, "ALERT");
     setLockTicks(LOCK_ALERT_TICKS);
     world.sendMessage("§6[SENTINEL]§r  ALERT state active. Terminal lockout: 10s.");
     return;
   }
 
   if (to === "BREACH") {
-    spawnSharedPatrols(12, "BREACH");
+    spawnSharedPatrols(4, "BREACH");
     setLockTicks(LOCK_BREACH_TICKS);
     revokeToGuest();
     const overworld = world.getDimension("overworld");
@@ -1433,7 +1424,7 @@ function onBandEscalation(from: NoiseBand, to: NoiseBand): void {
   }
 
   if (to === "LOCKDOWN") {
-    spawnSharedPatrols(20, "LOCKDOWN");
+    spawnSharedPatrols(3, "LOCKDOWN");
     setLockTicks(LOCK_LOCKDOWN_TICKS);
     revokeToGuest();
     world.sendMessage("§4[SENTINEL]§r  LOCKDOWN active. Terminal disabled.");
@@ -1606,6 +1597,7 @@ function enforceBoundary(player: Player): void {
 
 const DEFENSE_MOB_IDS = new Set([
   "minecraft:zombie",
+  "minecraft:husk",
   "minecraft:vindicator",
   "minecraft:ravager",
   "minecraft:warden",

@@ -916,29 +916,34 @@
     <tr>
       <td style="color:var(--yellow);font-weight:600">WARNING</td>
       <td><span class="noise-val">25–49</span></td>
-      <td>3 patrol mobs distributed near connected players</td>
+      <td>2 zombies distributed near connected players</td>
       <td>Patrols repeat every 40s. Noise decays 1/s.</td>
     </tr>
     <tr>
       <td style="color:var(--orange);font-weight:600">ALERT</td>
       <td><span class="noise-val">50–74</span></td>
-      <td>6 mobs spawn. Terminal locked 10s. Firewall auto-patched if bypassed.</td>
-      <td>Patrols every 20s. Noise decay slowed 50%.</td>
+      <td>3 husks spawn. Terminal locked 10s. Firewall auto-patched if bypassed.</td>
+      <td>Patrols every 30s. Noise decay slowed 50%.</td>
     </tr>
     <tr>
       <td style="color:var(--red);font-weight:600">BREACH</td>
       <td><span class="noise-val">75–99</span></td>
-      <td>12 mobs. Permission revoked to guest. Terminal locked 30s. Teleport to Overworld spawn.</td>
-      <td>Patrols every 10s. Noise decays 1/s.</td>
+      <td>4 vindicators. Permission revoked to guest. Terminal locked 30s. Teleport to Overworld spawn.</td>
+      <td>Patrols every 20s. Noise decays 1/s.</td>
     </tr>
     <tr>
       <td style="color:#ff4444;font-weight:600">LOCKDOWN</td>
       <td><span class="noise-val">100</span></td>
-      <td>20 mobs. Terminal locked 60s. All permissions revoked.</td>
-      <td>Patrols every 10s. Noise decay frozen.</td>
+      <td>3 vindicators. Terminal locked 60s. All permissions revoked.</td>
+      <td>Patrols every 15s. Noise decay frozen.</td>
     </tr>
   </tbody>
 </table>
+</div>
+
+<div class="note">
+  <div class="note-title">The End is exempt</div>
+  Patrol mobs never spawn for a player in the End. Noise still rises and the terminal can still lock, but the boss arena stays clear so the core-defense fight is fair.
 </div>
 
 <div class="card" style="margin-top:24px">
