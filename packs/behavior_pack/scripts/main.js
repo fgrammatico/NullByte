@@ -1178,13 +1178,14 @@ function onBandEscalation(from, to) {
         return;
     }
     if (to === "BREACH") {
-        spawnSharedPatrols(4, "BREACH");
         setLockTicks(LOCK_BREACH_TICKS);
         revokeToGuest();
         const overworld = world.getDimension("overworld");
         for (const player of world.getAllPlayers()) {
             player.teleport({ x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ }, { dimension: overworld });
         }
+        // Spawn after the teleport so patrols land at the relocation point, not the abandoned breach site.
+        spawnSharedPatrols(4, "BREACH");
         world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked. Relocating to a monitored zone.");
         return;
     }

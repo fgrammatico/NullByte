@@ -1409,7 +1409,6 @@ function onBandEscalation(from: NoiseBand, to: NoiseBand): void {
   }
 
   if (to === "BREACH") {
-    spawnSharedPatrols(4, "BREACH");
     setLockTicks(LOCK_BREACH_TICKS);
     revokeToGuest();
     const overworld = world.getDimension("overworld");
@@ -1419,6 +1418,8 @@ function onBandEscalation(from: NoiseBand, to: NoiseBand): void {
         { dimension: overworld },
       );
     }
+    // Spawn after the teleport so patrols land at the relocation point, not the abandoned breach site.
+    spawnSharedPatrols(4, "BREACH");
     world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked. Relocating to a monitored zone.");
     return;
   }
