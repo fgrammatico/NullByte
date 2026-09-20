@@ -21,21 +21,21 @@
             ]
           },
           {
-            "name": "04:15  g.host disabled by ZERO",
+            "name": "04:15  gh0st disabled by Z3r0",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
               "/say [SENTINEL] False report. That is the disable, not the reuse. Noise increased."
             ]
           },
           {
-            "name": "04:17  g.host login from 203.0.113.42",
+            "name": "04:17  gh0st login from 203.0.113.42",
             "commands": [
               "/scoreboard players set NB_GLOBAL nb_p03 1",
               "/dialogue change @e[tag=soc_triage_npc] soc_triage_done"
             ]
           },
           {
-            "name": "04:19  g.host read firewall.bin",
+            "name": "04:19  gh0st read firewall.bin",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
               "/say [SENTINEL] False report. The login is the earlier proof. Noise increased."
@@ -46,7 +46,7 @@
       {
         "scene_tag": "soc_triage_done",
         "npc_name": "SOC TRIAGE",
-        "text": "INCIDENT TRIAGE\n\nReport accepted. Account reuse confirmed at 04:17.\n\nZERO closed this incident. It is open again.\n\nFirewall exploit token released. The rest of it is in the hardware lab.",
+        "text": "INCIDENT TRIAGE\n\nReport accepted. Account reuse confirmed at 04:17.\n\nZERO closed this incident. It is open again.\n\nFirewall exploit token released.",
         "buttons": []
       }
     ]

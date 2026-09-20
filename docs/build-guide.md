@@ -2,7 +2,7 @@
 
 Chronological build guide. Read top to bottom. Each section covers the physical build, messages to place, what triggers the flag, and what the player can do after.
 
-For noise band thresholds and patrol mob types see `packs/docs/noise-reference.md`.
+For noise band thresholds, patrol mob types, and the full scoreboard reference see Appendix D.
 
 ---
 
@@ -353,8 +353,6 @@ scoreboard players set NB_GLOBAL nb_p01 1
 6. Script checks `nb_p01 >= 1` and exact credentials. Sets `nb_perm = 1` (user). Shows `ACCESS GRANTED`. Adds +10 noise. 
 7. `nb:ls`, `nb:cat`, `nb:scan` are now available.
 
-> **Code TODO.** `nb:cat auth.log` currently prints three placeholder lines, not the real log. It must be updated in `packs/src/main.ts` to print the 7-line log shown in Puzzle 2 under "The log itself". Until then the login evidence looks wrong.
-
 8. Player reads another mail about the new flag to discover, finds a new card for the area, gets hint where to find the next room.
 9. Another email by Gh0st tells about the new added commands and then they must look out for NPCs and new terminal commands as they contain vital information. Also check for guns and weapons in the crate.
 
@@ -383,9 +381,9 @@ Use the standard transition (see "Cross-puzzle continuity"). Chain a block off `
 1. Player finds the entrance for the SOC lobby just in front of the Lab and opens only with the second card found from flag 1. 
 2. Blue Ops PC. Player reads a forum thread on a PC inside the SOC. Background chatter only; it does not gate anything.
 3. Blue Ops PC. Gh0st email tells the player which log to read.
-4. Walking to the log rack trips a proximity command block. The `ssh_auth.log` file becomes readable.
+4. Walking to the log rack trips a proximity command block that sets `nb_sshlog`. That unlocks the answer at the SOC TRIAGE console.
 5. Players notice the SOC TRIAGE console (an NPC used as a terminal) in the room.
-6. Player runs `nb:cat ssh_auth.log` in chat and reads 7 lines.
+6. Player runs `nb:cat auth.log` in chat and reads the 7 lines.
 7. Player answers at the SOC TRIAGE console. Correct answer sets `nb_p03`.
 
 Reading happens in chat. Answering happens in a click menu. No typing of answers, no identical buttons to guess between.
@@ -458,9 +456,9 @@ terminal.
 - G
 ```
 
-### Step 5 - proximity unlock for the log file
+### Step 5 - proximity unlock for the triage answer
 
-Place a command block under the walkway to the log rack, triggered by a pressure plate or a proximity check. It marks the SSH log as recovered.
+Place a command block under the walkway to the log rack, triggered by a pressure plate or a proximity check. It sets `nb_sshlog`, which unlocks the answer at the SOC TRIAGE console.
 
 Proximity check, Repeating / Unconditional / Always Active, no slash (replace coordinates and radius):
 ```
@@ -472,15 +470,15 @@ Register the objective once:
 /scoreboard objectives add nb_sshlog dummy
 ```
 
-> **Code TODO:** `ssh_auth.log` and the `nb_sshlog` gate are NOT in `packs/src/main.ts` yet. `nb:cat` currently accepts only `auth.log` and `config`, and its `auth.log` output is placeholder text, not this log. Two code changes are needed: make `nb:cat auth.log` (or a new `ssh_auth.log`) print the 7 lines below, and add the `nb_sshlog` gate. Until then, use the fallback in Step 5b. Do the code work only after the story and this guide are settled.
+`nb_sshlog` is a builder objective, not a script feature. A command block sets it, and the SOC TRIAGE scene switch reads it (Step 6). It does not belong in `main.ts`. The log is already readable: `nb:cat auth.log` prints the 7 lines below, so there is no code change to make here.
 
-### Step 5b - fallback with no code change
+### Step 5b - optional printed copy
 
-If the script is not updated, deliver the log the same way the story delivers everything else: a printed email. Chain a `setblock` off the proximity block to reveal a lectern, or pre-load the Blue Ops PC print tray with the log below. The puzzle logic does not change.
+You can also deliver the log as a physical printout instead of, or alongside, the terminal. Chain a `setblock` off the proximity block to reveal a lectern, or pre-load the Blue Ops PC print tray with the log below. The puzzle logic does not change.
 
 ### The log itself
 
-Seven lines, same content whether read through `nb:cat ssh_auth.log` or printed:
+Seven lines, same content whether read through `nb:cat auth.log` or printed:
 
 ```
 04:11  sshd     Accepted publickey for admin from 10.0.0.5
@@ -516,7 +514,7 @@ This is the interactive part. Use an NPC, not buttons. The NPC dialogue UI gives
 |---|---|---|
 | `soc_triage_locked` | Before the SSH log is recovered | None. Sends them to the Blue Ops rack |
 | `soc_triage` | After the log is recovered | Four log lines |
-| `soc_triage_done` | After the correct answer | None. Confirms the flag and points at the Nether safe room |
+| `soc_triage_done` | After the correct answer | None. Confirms the flag; the Gh0st email handles the next step |
 
 Build steps:
 
@@ -553,7 +551,7 @@ Notes on this scene:
 
 - The Blue Ops door does not open without the emailed card.
 - Before the log is recovered, the NPC shows `soc_triage_locked` with no buttons.
-- `nb:cat auth.log` does not contain the gh0st session. Only `ssh_auth.log` or the printed copy does.
+- `nb:cat auth.log` prints the 7 lines, including the 04:17 `gh0st` login from the outside address.
 - Picking `04:17` sets `nb_p03`, the script announces the capture and removes 3 noise.
 - After the correct answer the NPC shows `soc_triage_done` and cannot be answered again.
 - `nb:exploit firewall` fails before the correct answer and succeeds after it.
@@ -561,8 +559,6 @@ Notes on this scene:
 ### Transition to the Nether
 
 Puzzle 2 is the last Overworld puzzle. Use the standard email-led transition: chain a block off `nb_p03` to deliver a Gh0st email to the Blue Ops PC inbox that names the Nether entrance and carries the card for the Nether safe room. The player then runs `nb:exploit firewall`, enters the safe room with the card, and takes the teleport down.
-
-> **Content note:** the `soc_triage_done` scene in `soc-triage.json` still says "the rest of it is in the hardware lab". Update that line to point at the Nether safe room during the code pass.
 
 ---
 
@@ -999,18 +995,150 @@ The Conditional chain only fires on the single tick that the Repeating block fir
 
 ---
 
-## Appendix D: Noise quick reference
+## Appendix D: Noise, defenses, and scoreboard reference
 
-Full table in `packs/docs/noise-reference.md`.
+Values mirror `packs/src/main.ts`. This is hand-maintained; update it only when the source changes.
 
-| Source | Noise |
+### Constants
+
+```typescript
+NOISE_MAX        = 100
+NOISE_DECAY_RATE = 1     // points removed per decay step
+NOISE_ALERT      = 50    // band boundary
+NOISE_ALARM      = 100   // band boundary (LOCKDOWN)
+
+LOCK_ALERT_TICKS    = 10 * 20   // 10 seconds
+LOCK_BREACH_TICKS   = 30 * 20   // 30 seconds
+LOCK_LOCKDOWN_TICKS = 60 * 20   // 60 seconds
+
+LOCKDOWN_BOSS_MOB = "minecraft:warden"
+```
+
+### Noise bands
+
+`getNoiseBand(level)` maps `nb_noise` to a band:
+
+| Band | Range | Primary patrol mob | Response |
+|---|---|---|---|
+| CLEAN | 0-24 | none | No scheduled patrols |
+| WARNING | 25-49 | `minecraft:zombie` | 3 patrols, then a wave every 40s |
+| ALERT | 50-74 | `minecraft:vindicator` | 6 patrols, 10s lock, firewall auto-patch, slower decay |
+| BREACH | 75-99 | `minecraft:ravager` | 12 patrols, 30s lock, permission revoke, players returned to Overworld |
+| LOCKDOWN | 100 | `minecraft:vindicator` + 1 `minecraft:warden` | 20 patrols, 60s lock, permission revoke, frozen decay |
+
+### Band escalation effects
+
+`onBandEscalation(from, to)` fires when `nb_noise` crosses a boundary upward.
+
+- Any escalation to ALERT or higher: `nb_alarms += 1`; if `nb_fwall >= 1`, sets `nb_fwall = 0` (firewall bypass auto-patched).
+- WARNING: spawn 3 zombies. Chat: `[SENTINEL] Warning threshold reached.`
+- ALERT: spawn 6 vindicators; 10s lock. Chat: `[SENTINEL] ALERT state active. Terminal lockout: 10s.`
+- BREACH: spawn 12 ravagers; 30s lock; revoke permission to guest; teleport all players to `BOUNDARY.spawnX/Y/Z`. Chat: `[SENTINEL] BREACH state. Shared permission revoked.`
+- LOCKDOWN: spawn 20 mobs (1 warden + 19 vindicators); 60s lock; revoke permission to guest. Chat: `[SENTINEL] LOCKDOWN active. Terminal disabled.`
+- Downward crossing below ALERT: chat `[SENTINEL] Threat reduced. Re-authentication available.` No auto permission restore; players re-run `nb:login` and `nb:sudo`.
+
+### Scheduled patrols (tick loop)
+
+| Band | Interval | Mobs per wave |
+|---|---|---|
+| CLEAN | disabled | 0 |
+| WARNING | every 40s | 3 zombies |
+| ALERT | every 20s | 6 vindicators |
+| BREACH | every 10s | 12 ravagers |
+| LOCKDOWN | every 10s | 20 (vindicators + warden first wave) |
+
+The patrol timer resets on every band escalation.
+
+### Per-command-penalty patrols
+
+On command failure (and some successes), `applyCommandPenalty` adds noise then spawns `getMisuseSpawnCount(noise)` mobs immediately, in addition to any escalation spawns:
+
+| Band at penalty | Immediate spawn |
 |---|---|
-| Sprint (any player, every 2 ticks) | +1 |
-| Nether entry without firewall bypass | +8 |
-| End entry without route open | +8 |
-| SOC triage wrong answer | +5 |
-| Port Knock wrong plate | +2 |
-| Flag capture | -3 |
+| CLEAN | 0 |
+| WARNING | 1 |
+| ALERT | 2 |
+| BREACH | 3 |
+| LOCKDOWN | 4 |
+
+### Noise decay (tick loop)
+
+| Condition | Decay |
+|---|---|
+| CLEAN or WARNING | -1 per second (every 20 ticks) |
+| ALERT | -1 per 2 seconds (every 40 ticks) |
+| LOCKDOWN | frozen (no decay) |
+
+### Noise sources
+
+| Source | Amount | Notes |
+|---|---|---|
+| Any player sprinting | +1 | Capped: every 2 ticks regardless of player count |
+| Nether entry without firewall bypass | +8 | `checkDimensionEntry` |
+| End entry without route open (`nb_p02 < 1`) | +8 | `checkDimensionEntry` |
+| SOC triage wrong answer | +5 | NPC dialogue button |
+| Port Knock wrong plate | +2 | script |
+| Flag captured (0 to 1) | -3 | `announceFlagGains`, minimum 0 |
+| Hitting a defense mob | +3 | documented, not yet verified in source |
+| Breaking server hardware blocks | +5 | documented, not yet verified in source |
+
+### Per-command noise
+
+| Command | Success | Failure | Precondition |
+|---|---|---|---|
+| `nb:scan` | +15 | +4 | `nb_p01 >= 1` |
+| `nb:ls` | +1 | +3 | `nb_p01 >= 1` |
+| `nb:cat` | +1 | +2 usage / +3 not found / +4 no creds | `nb_p01 >= 1` |
+| `nb:whoami` | 0 | 0 | - |
+| `nb:menu` | 0 | 0 | - |
+| `nb:status` | 0 | 0 | - |
+| `nb:login` | +10 | +2 usage / +4 invalid | `nb_p01 >= 1` + exact creds |
+| `nb:sudo` | +25 | +2 usage / +4 or +6 denied | `nb_p04 >= 1` |
+| `nb:exploit firewall` | +15 | +4 no user / +20 missing token | `nb_p03 >= 1` + user + `nb_fwall = 0` |
+| `nb:exploit root` | +50 | +6 no admin / +30 enc, knock, or dimension | `nb_enc = 1` + `nb_p07 = 1` + End |
+| `nb:patch_covers` | -10 net (+5 then -15) | +4 no user / +5 cooldown | user + cooldown clear |
+| `nb:kill_patrol` | +5 | +10 no admin | admin |
+| Unknown `nb:` command | - | +2 | - |
+
+### Patrol spawn locations
+
+`spawnMisusePatrols` and `spawnSharedPatrols` use this priority:
+
+1. `chiseled_stone_bricks` within 64 blocks (16 vertical), nearest first.
+2. Fallback: a 20-offset player-relative grid, each validated for a solid floor with 2 air blocks above.
+
+Place `chiseled_stone_bricks` at intended patrol positions to control where mobs appear.
+
+### Terminal lock
+
+`nb_locked` counts down 1 per tick. While `nb_locked > 0`, any command returns `TERMINAL LOCKED - Xs remaining`. A new escalation only extends the lock if its duration exceeds the remaining ticks (`setLockTicks` takes the maximum).
+
+### Scoreboard objectives
+
+Puzzle flags are permanent discoveries; defensive events never clear them.
+
+| Objective | Meaning |
+|---|---|
+| `nb_p01` | Credentials discovered |
+| `nb_p02` | End route opened |
+| `nb_p03` | Firewall exploit token discovered |
+| `nb_p04` | Sudo secret decoded |
+| `nb_p05` | Unused. Firewall Console puzzle removed; still registered |
+| `nb_p06` | Unused. Key Assembly puzzle removed; still registered |
+| `nb_p07` | Port Knock completed |
+| `nb_perm` | Shared permission: guest, user, admin, or root |
+| `nb_noise` | Shared threat noise, 0 to 100 |
+| `nb_alarms` | Count of ALERT-or-higher escalations |
+| `nb_locked` | Terminal lock duration |
+| `nb_fwall` | Firewall bypass state |
+| `nb_ids` | Unused. IDS exploit removed; still registered |
+| `nb_enc` | Core defense down, set by the End boss |
+| `nb_knock` | Current Port Knock step |
+| `nb_patch` | Persistent `patch_covers` cooldown deadline |
+| `nb_start` | Registered but never read or written. Unused |
+| `nb_victory` | Root victory state |
+
+`FLAG_KEYS` tracks `nb_p01`, `nb_p02`, `nb_p03`, `nb_p04`, and `nb_p07` for capture announcements and the -3 reward.
 
 ---
 

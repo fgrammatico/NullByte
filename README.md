@@ -8,7 +8,7 @@ The host installs the custom behavior and resource packs, opens the world to loc
 
 ## What it is
 
-NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. HEXCORE is a technology company that sells security systems and is much worse at using them. Players follow the trail left by a terminated employee called GHOST and gain root access to shut the whole thing down.
+NullByte is a cooperative Minecraft Bedrock puzzle game about cybersecurity. HEXCORE is a technology company that sells security systems and is much worse at using them. Players follow the trail left by a terminated employee called Gh0st and gain root access to shut the whole thing down.
 
 The world teaches real security concepts (credential handling, log analysis, firewall rules, binary encoding, social engineering, port knocking) through exploration and puzzle-solving. It is designed to be fun for all ages: kids, parents, and anyone who has ever wanted to hack something legally.
 
@@ -53,7 +53,6 @@ packs/           - public behavior and resource pack structure
   behavior_pack/ - behavior-pack manifest, NPC dialogue scenes, public assets
   resource_pack/ - resource-pack manifest and public assets
 release-inputs/  - tracked runtime config and source-world release inputs
-scoring/         - evaluation overview
 ```
 
 Scoring details remain private. Runtime configuration and the source world are tracked because GitHub-hosted release jobs require them.
