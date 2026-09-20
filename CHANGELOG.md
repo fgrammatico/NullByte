@@ -2,6 +2,11 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.33
+
+- chore(main.ts): merge origin/main into main (7e8a270)
+- fix(main.ts): Reorder BREACH vindicator spawn and skip players in the End (9d82f2a)
+
 ## 0.0.32
 
 - fix(main.ts): Spawn BREACH vindicators after lobby teleport instead of at breach site (f8b5148)
