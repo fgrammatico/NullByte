@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.31
+
+- fix(combat): rebalance noise defenses for two players and suppress End patrols (e3899c8)
+
 ## 0.0.30
 
 - docs(cleanup): consolidate reference docs, move build-guide to private (cdea4a9)
