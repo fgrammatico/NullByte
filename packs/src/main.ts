@@ -1419,7 +1419,7 @@ function onBandEscalation(from: NoiseBand, to: NoiseBand): void {
         { dimension: overworld },
       );
     }
-    world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked.");
+    world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked. Relocating to a monitored zone.");
     return;
   }
 

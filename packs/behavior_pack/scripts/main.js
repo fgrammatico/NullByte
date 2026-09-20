@@ -631,7 +631,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.0.29]§r",
+            "§a[HEXCORE TERMINAL v0.0.31]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -1185,7 +1185,7 @@ function onBandEscalation(from, to) {
         for (const player of world.getAllPlayers()) {
             player.teleport({ x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ }, { dimension: overworld });
         }
-        world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked.");
+        world.sendMessage("§c[SENTINEL]§r  BREACH state. Shared permission revoked. Relocating to a monitored zone.");
         return;
     }
     if (to === "LOCKDOWN") {
