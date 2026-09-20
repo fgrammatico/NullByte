@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.36
+
+- fix(main.ts): Escalate unauthorized Nether entry to BREACH; wire real Overworld-Nether transition (0de4489)
+
 ## 0.0.35
 
 - fix(soc-triage.json): Spawn a zombie on wrong SOC TRIAGE answers (33cb8a0)
