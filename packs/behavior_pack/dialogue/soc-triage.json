@@ -11,6 +11,7 @@
             "name": "04:13  admin opened a root shell",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
+              "/execute at @initiator run summon minecraft:zombie ~1 ~ ~1",
               "/say [SENTINEL] False report. That account was still active. Noise increased."
             ]
           },
@@ -18,6 +19,7 @@
             "name": "04:15  gh0st disabled by Z3r0",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
+              "/execute at @initiator run summon minecraft:zombie ~1 ~ ~1",
               "/say [SENTINEL] False report. That is the disable, not the reuse. Noise increased."
             ]
           },
@@ -32,6 +34,7 @@
             "name": "04:19  gh0st read firewall.bin",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
+              "/execute at @initiator run summon minecraft:zombie ~1 ~ ~1",
               "/say [SENTINEL] False report. The login is the earlier proof. Noise increased."
             ]
           }
