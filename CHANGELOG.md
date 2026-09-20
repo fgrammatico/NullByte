@@ -2,6 +2,11 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.32
+
+- fix(main.ts): Spawn BREACH vindicators after lobby teleport instead of at breach site (f8b5148)
+- fix(main.ts): Add relocation reason to BREACH SENTINEL message (2bce8ad)
+
 ## 0.0.31
 
 - fix(combat): rebalance noise defenses for two players and suppress End patrols (e3899c8)
