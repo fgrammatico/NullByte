@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.0.35
+
+- fix(soc-triage.json): Spawn a zombie on wrong SOC TRIAGE answers (33cb8a0)
+
 ## 0.0.34
 
 - fix(main.ts): Remove nb_sshlog gate; SOC TRIAGE NPC opens straight to the question (e83e64f)
