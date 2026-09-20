@@ -923,7 +923,7 @@ function handleReset(origin: CustomCommandOrigin): CustomCommandResult {
         "  §8- gates opened with setblock: replace the block§r",
         "  §8- latched hopper filters in the End vault§r",
         "  §8- keycards already in player inventories§r",
-        "  §8- NPC scenes: /dialogue change @e[tag=soc_triage_npc] soc_triage_locked§r",
+        "  §8- NPC scenes: /dialogue change @e[tag=soc_triage_npc] soc_triage§r",
       ].join("\n"),
     );
     world.sendMessage("§e[SYSTEM]§r  Session reset by operator. All progress cleared.");
@@ -935,7 +935,7 @@ function handleReset(origin: CustomCommandOrigin): CustomCommandResult {
 function resetSharedState(): void {
   ensureObjectivesRegistered();
 
-  // Wipes builder-created objectives too (nb_sshlog, nb_fwall_tp, nb_p02_tp).
+  // Wipes builder-created objectives too (nb_fwall_tp, nb_p02_tp).
   try {
     world.getDimension("overworld").runCommand(`scoreboard players reset ${GLOBAL_PARTICIPANT}`);
   } catch {

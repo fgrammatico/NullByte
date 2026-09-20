@@ -631,7 +631,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.0.31]§r",
+            "§a[HEXCORE TERMINAL v0.0.33]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -750,7 +750,7 @@ function handleReset(origin) {
             "  §8- gates opened with setblock: replace the block§r",
             "  §8- latched hopper filters in the End vault§r",
             "  §8- keycards already in player inventories§r",
-            "  §8- NPC scenes: /dialogue change @e[tag=soc_triage_npc] soc_triage_locked§r",
+            "  §8- NPC scenes: /dialogue change @e[tag=soc_triage_npc] soc_triage§r",
         ].join("\n"));
         world.sendMessage("§e[SYSTEM]§r  Session reset by operator. All progress cleared.");
     }, 1);
@@ -758,7 +758,7 @@ function handleReset(origin) {
 }
 function resetSharedState() {
     ensureObjectivesRegistered();
-    // Wipes builder-created objectives too (nb_sshlog, nb_fwall_tp, nb_p02_tp).
+    // Wipes builder-created objectives too (nb_fwall_tp, nb_p02_tp).
     try {
         world.getDimension("overworld").runCommand(`scoreboard players reset ${GLOBAL_PARTICIPANT}`);
     }

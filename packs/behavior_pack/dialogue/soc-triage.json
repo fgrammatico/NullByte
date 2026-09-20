@@ -3,12 +3,6 @@
   "minecraft:npc_dialogue": {
     "scenes": [
       {
-        "scene_tag": "soc_triage_locked",
-        "npc_name": "SOC TRIAGE",
-        "text": "INCIDENT TRIAGE\n\nNo evidence attached to this report.\n\nRecover the SSH log from the Blue Ops rack, then come back.",
-        "buttons": []
-      },
-      {
         "scene_tag": "soc_triage",
         "npc_name": "SOC TRIAGE",
         "text": "INCIDENT TRIAGE\n\nReport the first log line that proves a disabled account was used again.\n\nFalse reports raise facility noise.",
