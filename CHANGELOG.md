@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.1.0
+
+- fix(main.ts): Add BREACH on-screen warning for Nether entry; extend all title display times by 5s stay from 70 to 170 [minor] (9531c12)
+
 ## 0.0.36
 
 - fix(main.ts): Escalate unauthorized Nether entry to BREACH; wire real Overworld-Nether transition (0de4489)
