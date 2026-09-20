@@ -208,7 +208,7 @@ function revokeToGuest(): void {
     player.onScreenDisplay.setTitle("§cACCESS REVOKED", {
       subtitle: "§7Threat level critical",
       fadeInDuration: 0,
-      stayDuration: 50,
+      stayDuration: 150,
       fadeOutDuration: 10,
     });
   }
@@ -425,7 +425,7 @@ function applyCommandPenalty(player: Player, reason: string, baseNoise: number):
   spawnMisusePatrols(player, spawnCount, band);
   player.onScreenDisplay.setTitle("§cSENTINEL", {
     fadeInDuration: 0,
-    stayDuration: 36,
+    stayDuration: 136,
     fadeOutDuration: 8,
     subtitle: "§cIntrusion detected",
   });
@@ -985,7 +985,11 @@ function handleLogin(origin: CustomCommandOrigin, ...args: unknown[]): CustomCom
     setPermission(PERM_USER);
     player.sendMessage(`§a[login]§r  Welcome, ${username}. Session token established.`);
     for (const onlinePlayer of world.getAllPlayers()) {
-      onlinePlayer.onScreenDisplay.setTitle("§aACCESS GRANTED");
+      onlinePlayer.onScreenDisplay.setTitle("§aACCESS GRANTED", {
+        fadeInDuration: 10,
+        stayDuration: 170,
+        fadeOutDuration: 20,
+      });
     }
   });
 }
@@ -1174,7 +1178,7 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
       player.onScreenDisplay.setTitle("§aROOT ACCESS", {
         subtitle: "§7System core compromised",
         fadeInDuration: 0,
-        stayDuration: 40,
+        stayDuration: 140,
         fadeOutDuration: 10,
       });
 
@@ -1202,7 +1206,7 @@ function handleExploit(origin: CustomCommandOrigin, ...args: unknown[]): CustomC
           player.onScreenDisplay.setTitle("§c[SYSTEM OFFLINE]", {
             subtitle: "§7HEXCORE terminal shutting down...",
             fadeInDuration: 10,
-            stayDuration: 80,
+            stayDuration: 180,
             fadeOutDuration: 20,
           });
           world.sendMessage(
@@ -1326,7 +1330,7 @@ function announceFlagGains(): void {
           player.onScreenDisplay.setTitle("§aFLAG CAPTURED", {
             subtitle: meta.name,
             fadeInDuration: 0,
-            stayDuration: 30,
+            stayDuration: 130,
             fadeOutDuration: 10,
           });
         }
@@ -1449,6 +1453,12 @@ function checkDimensionEntry(player: Player): void {
     } else {
       world.sendMessage(`§c[SENTINEL]§r  ${player.name} entered the Nether before the firewall was bypassed. BREACH triggered.`);
     }
+    player.onScreenDisplay.setTitle("§c[SENTINEL]§r", {
+      subtitle: "§7Unauthorized access logged.\nGuards deployed.\nThis is your only warning.\n(It is not a warning.)",
+      fadeInDuration: 0,
+      stayDuration: 160,
+      fadeOutDuration: 10,
+    });
   }
 
   if (currentDimension === "minecraft:the_end" && getScore(OBJ.p02) < 1) {
@@ -1564,7 +1574,11 @@ function onPlayerJoin(player: Player): void {
 
   if (getScore(OBJ.victory) >= 1) {
     player.sendMessage("§a[HEXCORE]§r  System already compromised. Root access is active.");
-    player.onScreenDisplay.setTitle("§aMISSION COMPLETE");
+    player.onScreenDisplay.setTitle("§aMISSION COMPLETE", {
+      fadeInDuration: 10,
+      stayDuration: 170,
+      fadeOutDuration: 20,
+    });
     return;
   }
 
@@ -1572,7 +1586,7 @@ function onPlayerJoin(player: Player): void {
   player.onScreenDisplay.setTitle("§eHEXCORE§r", {
     subtitle: "Security Evaluation — Session Active",
     fadeInDuration: 10,
-    stayDuration: 60,
+    stayDuration: 160,
     fadeOutDuration: 10,
   });
 }
@@ -1596,7 +1610,11 @@ function enforceBoundary(player: Player): void {
       { dimension: world.getDimension("overworld") },
     );
     player.sendMessage("§c[SENTINEL]§r  Out of bounds. Returning to staging area.");
-    player.onScreenDisplay.setTitle("§c⚠ OUT OF BOUNDS ⚠");
+    player.onScreenDisplay.setTitle("§c⚠ OUT OF BOUNDS ⚠", {
+      fadeInDuration: 10,
+      stayDuration: 170,
+      fadeOutDuration: 20,
+    });
   }
 }
 

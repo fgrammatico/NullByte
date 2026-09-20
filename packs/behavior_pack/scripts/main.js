@@ -168,7 +168,7 @@ function revokeToGuest() {
         player.onScreenDisplay.setTitle("§cACCESS REVOKED", {
             subtitle: "§7Threat level critical",
             fadeInDuration: 0,
-            stayDuration: 50,
+            stayDuration: 150,
             fadeOutDuration: 10,
         });
     }
@@ -360,7 +360,7 @@ function applyCommandPenalty(player, reason, baseNoise) {
     spawnMisusePatrols(player, spawnCount, band);
     player.onScreenDisplay.setTitle("§cSENTINEL", {
         fadeInDuration: 0,
-        stayDuration: 36,
+        stayDuration: 136,
         fadeOutDuration: 8,
         subtitle: "§cIntrusion detected",
     });
@@ -631,7 +631,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.0.35]§r",
+            "§a[HEXCORE TERMINAL v0.0.36]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -801,7 +801,11 @@ function handleLogin(origin, ...args) {
         setPermission(PERM_USER);
         player.sendMessage(`§a[login]§r  Welcome, ${username}. Session token established.`);
         for (const onlinePlayer of world.getAllPlayers()) {
-            onlinePlayer.onScreenDisplay.setTitle("§aACCESS GRANTED");
+            onlinePlayer.onScreenDisplay.setTitle("§aACCESS GRANTED", {
+                fadeInDuration: 10,
+                stayDuration: 170,
+                fadeOutDuration: 20,
+            });
         }
     });
 }
@@ -964,7 +968,7 @@ function handleExploit(origin, ...args) {
             player.onScreenDisplay.setTitle("§aROOT ACCESS", {
                 subtitle: "§7System core compromised",
                 fadeInDuration: 0,
-                stayDuration: 40,
+                stayDuration: 140,
                 fadeOutDuration: 10,
             });
             // Staged shutdown sequence.
@@ -994,7 +998,7 @@ function handleExploit(origin, ...args) {
                     player.onScreenDisplay.setTitle("§c[SYSTEM OFFLINE]", {
                         subtitle: "§7HEXCORE terminal shutting down...",
                         fadeInDuration: 10,
-                        stayDuration: 80,
+                        stayDuration: 180,
                         fadeOutDuration: 20,
                     });
                     world.sendMessage("§a[NullByte]§r  §lMISSION COMPLETE§r\n" +
@@ -1100,7 +1104,7 @@ function announceFlagGains() {
                     player.onScreenDisplay.setTitle("§aFLAG CAPTURED", {
                         subtitle: meta.name,
                         fadeInDuration: 0,
-                        stayDuration: 30,
+                        stayDuration: 130,
                         fadeOutDuration: 10,
                     });
                 }
@@ -1215,6 +1219,12 @@ function checkDimensionEntry(player) {
         else {
             world.sendMessage(`§c[SENTINEL]§r  ${player.name} entered the Nether before the firewall was bypassed. BREACH triggered.`);
         }
+        player.onScreenDisplay.setTitle("§c[SENTINEL]§r", {
+            subtitle: "§7Unauthorized access logged.\nGuards deployed.\nThis is your only warning.\n(It is not a warning.)",
+            fadeInDuration: 0,
+            stayDuration: 160,
+            fadeOutDuration: 10,
+        });
     }
     if (currentDimension === "minecraft:the_end" && getScore(OBJ.p02) < 1) {
         addNoise(8);
@@ -1315,14 +1325,18 @@ function onPlayerJoin(player) {
     player.onScreenDisplay.setActionBar("");
     if (getScore(OBJ.victory) >= 1) {
         player.sendMessage("§a[HEXCORE]§r  System already compromised. Root access is active.");
-        player.onScreenDisplay.setTitle("§aMISSION COMPLETE");
+        player.onScreenDisplay.setTitle("§aMISSION COMPLETE", {
+            fadeInDuration: 10,
+            stayDuration: 170,
+            fadeOutDuration: 20,
+        });
         return;
     }
     player.sendMessage("§7[HEXCORE]§r  Connection established. Shared session state loaded.");
     player.onScreenDisplay.setTitle("§eHEXCORE§r", {
         subtitle: "Security Evaluation — Session Active",
         fadeInDuration: 10,
-        stayDuration: 60,
+        stayDuration: 160,
         fadeOutDuration: 10,
     });
 }
@@ -1340,7 +1354,11 @@ function enforceBoundary(player) {
     if (out) {
         player.teleport({ x: BOUNDARY.spawnX, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ }, { dimension: world.getDimension("overworld") });
         player.sendMessage("§c[SENTINEL]§r  Out of bounds. Returning to staging area.");
-        player.onScreenDisplay.setTitle("§c⚠ OUT OF BOUNDS ⚠");
+        player.onScreenDisplay.setTitle("§c⚠ OUT OF BOUNDS ⚠", {
+            fadeInDuration: 10,
+            stayDuration: 170,
+            fadeOutDuration: 20,
+        });
     }
 }
 // ---------------------------------------------------------------------------
