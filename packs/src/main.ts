@@ -1445,7 +1445,15 @@ function checkDimensionEntry(player: Player): void {
   if (!previousDimension || previousDimension === currentDimension) return;
 
   if (currentDimension === "minecraft:nether" && getScore(OBJ.fwall) < 1) {
-    setScore(OBJ.noise, Math.max(getScore(OBJ.noise), 75));
+    const previousNoise = getScore(OBJ.noise);
+    setScore(OBJ.noise, Math.max(previousNoise, 75));
+    if (previousNoise < 75) {
+      // Entry has its own mob response. Do not apply the generic BREACH lock,
+      // permission reset, or lobby teleport on the next tick for this increase.
+      lastNoiseBand = "BREACH";
+      lastPatrolTick = tickCount;
+      setScore(OBJ.alarms, getScore(OBJ.alarms) + 1);
+    }
     // Deploy at entry even if noise is already high and no band escalation fires.
     const patrolCount = getScore(OBJ.perm) < PERM_USER ? 7 : 4;
     spawnMisusePatrols(player, patrolCount, "BREACH");
