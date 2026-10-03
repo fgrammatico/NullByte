@@ -1,6 +1,6 @@
 {
   "name": "nullbyte-behavior-pack",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "NullByte — HEXCORE cybersecurity evaluation platform for Minecraft Bedrock",
   "private": true,
   "scripts": {
