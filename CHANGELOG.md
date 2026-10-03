@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.1.5
+
+- fix(nether): Retry entry guards while chunks load [patch] (8b55922)
+
 ## 0.1.4
 
 - fix(nether): Report entry guard spawn failures [patch] (105994d)
