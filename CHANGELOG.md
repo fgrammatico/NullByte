@@ -2,6 +2,12 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.1.1
+
+- Merge pull request #2 from fgrammatico/nether (3fe86fe)
+  fix(nether): Spawn guards on unauthorized entry [patch]
+- fix(nether): Spawn guards on unauthorized entry [patch] (599d489)
+
 ## 0.1.0
 
 - fix(main.ts): Add BREACH on-screen warning for Nether entry; extend all title display times by 5s stay from 70 to 170 [minor] (9531c12)
