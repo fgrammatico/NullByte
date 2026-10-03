@@ -1,0 +1,51 @@
+{
+  "format_version": "1.17",
+  "minecraft:npc_dialogue": {
+    "scenes": [
+      {
+        "scene_tag": "b1t_intro",
+        "npc_name": "B1T",
+        "text": "Oh good, a person.\n\nNobody's touched these levers since the place emptied out.\n\nRecovered byte: 01000001\n\nEvery lever is a switch with a price tag: 128 64 32 16 8 4 2 1. The byte is a checklist: 1 flips a switch on and counts its price, 0 leaves it off.",
+        "buttons": [
+          {
+            "name": "Show me an example",
+            "commands": [
+              "/dialogue change @e[tag=b1t_npc] b1t_example"
+            ]
+          },
+          {
+            "name": "I've got it",
+            "commands": [
+              "/dialogue change @e[tag=b1t_npc] b1t_bye"
+            ]
+          }
+        ]
+      },
+      {
+        "scene_tag": "b1t_example",
+        "npc_name": "B1T",
+        "text": "Try 01000010.\n\nLine it up: 0 1 0 0 0 0 1 0 under 128 64 32 16 8 4 2 1.\n\nOnly the 64 switch and the 2 switch are on. 64 + 2 = 66. Look 66 up on the wall: it's B.\n\nYour byte is different. Do the same thing to it.",
+        "buttons": [
+          {
+            "name": "Back",
+            "commands": [
+              "/dialogue change @e[tag=b1t_npc] b1t_intro"
+            ]
+          },
+          {
+            "name": "Got it",
+            "commands": [
+              "/dialogue change @e[tag=b1t_npc] b1t_bye"
+            ]
+          }
+        ]
+      },
+      {
+        "scene_tag": "b1t_bye",
+        "npc_name": "B1T",
+        "text": "Good luck.\n\nTry not to leave me alone out here for another six years.",
+        "buttons": []
+      }
+    ]
+  }
+}
