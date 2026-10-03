@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.1.4
+
+- fix(nether): Report entry guard spawn failures [patch] (105994d)
+
 ## 0.1.3
 
 - fix(nether): Spawn heavier entry guards nearby [patch] (32606de)
