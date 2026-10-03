@@ -289,18 +289,20 @@ function spawnPatrolEntity(
   x: number,
   y: number,
   z: number,
+  reportFailure?: (reason: string, detail: string) => void,
 ): boolean {
   const dim = player.dimension;
   try {
     dim.spawnEntity(entityType, { x, y, z });
     return true;
-  } catch {
+  } catch (spawnError) {
     try {
       const cmdId = entityType.replace("minecraft:", "");
       dim.runCommand(`summon ${cmdId} ${x} ${y} ${z}`);
       return true;
-    } catch {
+    } catch (commandError) {
       // Let the caller report failure if both paths fail.
+      reportFailure?.("spawn error", `${entityType} at ${x} ${y} ${z}; API: ${String(spawnError)}; command: ${String(commandError)}`);
       return false;
     }
   }
@@ -423,24 +425,31 @@ function findNetherGuardSpawnLocation(
   x: number,
   z: number,
   isRavager: boolean,
+  reportFailure?: (reason: string, detail: string) => void,
 ): Vector3 | undefined {
   const radius = isRavager ? 1 : 0;
   const height = isRavager ? 3 : 2;
   const baseY = Math.floor(player.location.y);
+  let checkedPosition = { x, y: baseY, z };
   // Stay on the arrival floor or nearby steps, not on the roof above the room.
   for (let y = baseY; y >= baseY - 3; y--) {
     try {
       let clear = true;
       for (let dx = -radius; dx <= radius && clear; dx++) {
         for (let dz = -radius; dz <= radius && clear; dz++) {
-          const floor = player.dimension.getBlock({ x: x + dx, y, z: z + dz });
+          checkedPosition = { x: x + dx, y, z: z + dz };
+          const floor = player.dimension.getBlock(checkedPosition);
           if (!floor || floor.isAir || floor.isLiquid) {
+            const reason = !floor ? "unavailable block" : floor.isAir ? "no floor" : "liquid floor";
+            reportFailure?.(reason, `${checkedPosition.x} ${checkedPosition.y} ${checkedPosition.z}: ${floor?.typeId ?? "unavailable"}`);
             clear = false;
             break;
           }
           for (let dy = 1; dy <= height; dy++) {
-            const block = player.dimension.getBlock({ x: x + dx, y: y + dy, z: z + dz });
+            checkedPosition = { x: x + dx, y: y + dy, z: z + dz };
+            const block = player.dimension.getBlock(checkedPosition);
             if (!block?.isAir) {
+              reportFailure?.(block ? "blocked space" : "unavailable block", `${checkedPosition.x} ${checkedPosition.y} ${checkedPosition.z}: ${block?.typeId ?? "unavailable"}`);
               clear = false;
               break;
             }
@@ -448,8 +457,9 @@ function findNetherGuardSpawnLocation(
         }
       }
       if (clear) return { x: x + 0.5, y: y + 1, z: z + 0.5 };
-    } catch {
+    } catch (error) {
       // Unloaded or out-of-world blocks are not usable spawn locations.
+      reportFailure?.("block read error", `${checkedPosition.x} ${checkedPosition.y} ${checkedPosition.z}: ${String(error)}`);
     }
   }
   return undefined;
@@ -467,6 +477,16 @@ function spawnNetherEntryGuards(player: Player, count: number): void {
   }
   candidates.sort((a, b) => a.distance - b.distance);
   const placed: { location: Vector3; radius: number }[] = [];
+  let spawnAttempts = 0;
+  const failures = new Map<string, { count: number; example: string }>();
+  const reportFailure = (reason: string, detail: string): void => {
+    const failure = failures.get(reason);
+    if (failure) {
+      failure.count++;
+    } else {
+      failures.set(reason, { count: 1, example: detail });
+    }
+  };
   for (let index = 0; index < count; index++) {
     const isRavager = index === 0;
     const radius = isRavager ? 1 : 0;
@@ -476,9 +496,10 @@ function spawnNetherEntryGuards(player: Player, count: number): void {
         Math.abs(candidate.x + 0.5 - guard.location.x) <= radius + guard.radius &&
         Math.abs(candidate.z + 0.5 - guard.location.z) <= radius + guard.radius
       )) continue;
-      const spawn = findNetherGuardSpawnLocation(player, candidate.x, candidate.z, isRavager);
+      const spawn = findNetherGuardSpawnLocation(player, candidate.x, candidate.z, isRavager, reportFailure);
       if (!spawn) continue;
-      if (spawnPatrolEntity(player, entityType, spawn.x, spawn.y, spawn.z)) {
+      spawnAttempts++;
+      if (spawnPatrolEntity(player, entityType, spawn.x, spawn.y, spawn.z, reportFailure)) {
         placed.push({ location: spawn, radius });
         break;
       }
@@ -486,6 +507,10 @@ function spawnNetherEntryGuards(player: Player, count: number): void {
   }
   if (placed.length < count) {
     world.sendMessage(`[NullByte] Nether entry guards for ${player.name}: spawned ${placed.length}/${count}. Check nearby floor, clearance, loaded blocks, and spawn errors.`);
+    world.sendMessage(`[NullByte] Guard diagnostic: arrival ${center.x.toFixed(2)} ${center.y.toFixed(2)} ${center.z.toFixed(2)} in ${player.dimension.id}; candidate columns ${candidates.length}; summon attempts ${spawnAttempts}.`);
+    for (const [reason, failure] of failures) {
+      world.sendMessage(`[NullByte] Guard diagnostic: ${reason}, ${failure.count} failed checks; example ${failure.example}`);
+    }
   }
 }
 

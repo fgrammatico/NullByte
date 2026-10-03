@@ -266,7 +266,7 @@ test("later LOCKDOWN after unauthorized entry still applies its ordinary penalty
 
 test("ravager requires three blocks of headroom while vindicators fit under a lower ceiling", () => {
   const state = createEntryState({
-    getBlock: ({ y }) => ({ isAir: y >= 87 && y < 89, isLiquid: false }),
+    getBlock: ({ y }) => ({ isAir: y >= 87 && y < 89, isLiquid: false, typeId: y === 89 ? "minecraft:stone" : "minecraft:air" }),
   });
   assert.equal(state.findGuard(state.player, 122, 1, true), undefined);
   assert.equal(state.findGuard(state.player, 122, 1, false)?.y, 87);
@@ -274,6 +274,7 @@ test("ravager requires three blocks of headroom while vindicators fit under a lo
   assert.equal(state.guards.length, 3);
   assert.ok(state.guards.every((guard) => guard.type === "minecraft:vindicator"));
   assert.match(state.warnings[0], /spawned 3\/4/);
+  assert.ok(state.messages.some((message) => /Guard diagnostic: blocked space.*89.*minecraft:stone/.test(message)));
 });
 
 test("ravager requires its whole footprint to be clear", () => {
@@ -289,11 +290,13 @@ test("ravager requires its whole footprint to be clear", () => {
 
 test("entry guards do not spawn on liquid floors", () => {
   const state = createEntryState({
-    getBlock: ({ y }) => ({ isAir: y >= 87, isLiquid: y < 87 }),
+    getBlock: ({ y }) => ({ isAir: y >= 87, isLiquid: y < 87, typeId: y < 87 ? "minecraft:lava" : "minecraft:air" }),
   });
   state.checkEntry(state.player);
   assert.equal(state.guards.length, 0);
   assert.match(state.warnings[0], /spawned 0\/4/);
+  assert.ok(state.messages.some((message) => /Guard diagnostic: liquid floor.*minecraft:lava/.test(message)));
+  assert.ok(state.messages.some((message) => /summon attempts 0/.test(message)));
 });
 
 test("entry guards skip unloaded nearby blocks and report incomplete deployment", () => {
@@ -301,6 +304,8 @@ test("entry guards skip unloaded nearby blocks and report incomplete deployment"
   state.checkEntry(state.player);
   assert.equal(state.guards.length, 0);
   assert.match(state.warnings[0], /spawned 0\/4/);
+  assert.ok(state.messages.some((message) => /Guard diagnostic: unavailable block/.test(message)));
+  assert.ok(state.messages.some((message) => /arrival 118.50 87.00 1.50 in minecraft:nether.*summon attempts 0/.test(message)));
 });
 
 test("failed API and command spawns are reported rather than counted as deployed", () => {
@@ -308,6 +313,34 @@ test("failed API and command spawns are reported rather than counted as deployed
   state.checkEntry(state.player);
   assert.equal(state.guards.length, 0);
   assert.match(state.warnings[0], /spawned 0\/4/);
+  assert.ok(state.messages.some((message) => /summon attempts [1-9]/.test(message)));
+  assert.ok(state.messages.some((message) => /Guard diagnostic: spawn error.*API: Error: spawn failed; command: Error: command spawn failed/.test(message)));
+});
+
+test("missing floor diagnostics include the block coordinates and type", () => {
+  const state = createEntryState({
+    getBlock: () => ({ isAir: true, isLiquid: false, typeId: "minecraft:air" }),
+  });
+  state.checkEntry(state.player);
+  assert.equal(state.guards.length, 0);
+  assert.ok(state.messages.some((message) => /Guard diagnostic: no floor.*example -?\d+ 87 -?\d+: minecraft:air/.test(message)));
+});
+
+test("block read exceptions are distinguished from missing floor", () => {
+  const state = createEntryState({
+    getBlock: () => { throw new Error("chunk not loaded"); },
+  });
+  state.checkEntry(state.player);
+  assert.equal(state.guards.length, 0);
+  assert.ok(state.messages.some((message) => /Guard diagnostic: block read error.*chunk not loaded/.test(message)));
+  assert.ok(!state.messages.some((message) => /Guard diagnostic: no floor/.test(message)));
+});
+
+test("successful entry waves do not print diagnostic messages", () => {
+  const state = createEntryState();
+  state.checkEntry(state.player);
+  assert.equal(state.guards.length, 4);
+  assert.ok(!state.messages.some((message) => message.includes("Guard diagnostic:")));
 });
 
 test("close entry search is not tied to block centres at the player's position", () => {
