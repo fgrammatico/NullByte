@@ -246,14 +246,17 @@ function spawnPatrolEntity(player, entityType, x, y, z) {
     const dim = player.dimension;
     try {
         dim.spawnEntity(entityType, { x, y, z });
+        return true;
     }
     catch {
         try {
             const cmdId = entityType.replace("minecraft:", "");
             dim.runCommand(`summon ${cmdId} ${x} ${y} ${z}`);
+            return true;
         }
         catch {
-            // Ignore if both paths fail.
+            // Let the caller report failure if both paths fail.
+            return false;
         }
     }
 }
@@ -349,6 +352,74 @@ function spawnMisusePatrols(player, count, band) {
         if (spawn) {
             spawnPatrolEntity(player, primaryMob, spawn.x, spawn.y, spawn.z);
         }
+    }
+}
+function findNetherGuardSpawnLocation(player, x, z, isRavager) {
+    const radius = isRavager ? 1 : 0;
+    const height = isRavager ? 3 : 2;
+    const baseY = Math.floor(player.location.y);
+    // Stay on the arrival floor or nearby steps, not on the roof above the room.
+    for (let y = baseY; y >= baseY - 3; y--) {
+        try {
+            let clear = true;
+            for (let dx = -radius; dx <= radius && clear; dx++) {
+                for (let dz = -radius; dz <= radius && clear; dz++) {
+                    const floor = player.dimension.getBlock({ x: x + dx, y, z: z + dz });
+                    if (!floor || floor.isAir || floor.isLiquid) {
+                        clear = false;
+                        break;
+                    }
+                    for (let dy = 1; dy <= height; dy++) {
+                        const block = player.dimension.getBlock({ x: x + dx, y: y + dy, z: z + dz });
+                        if (!block?.isAir) {
+                            clear = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (clear)
+                return { x: x + 0.5, y: y + 1, z: z + 0.5 };
+        }
+        catch {
+            // Unloaded or out-of-world blocks are not usable spawn locations.
+        }
+    }
+    return undefined;
+}
+function spawnNetherEntryGuards(player, count) {
+    if (player.dimension.id !== "minecraft:nether" || count <= 0)
+        return;
+    const center = player.location;
+    const candidates = [];
+    for (let x = Math.floor(center.x) - 5; x <= Math.floor(center.x) + 5; x++) {
+        for (let z = Math.floor(center.z) - 5; z <= Math.floor(center.z) + 5; z++) {
+            const distance = ((x + 0.5 - center.x) ** 2) + ((z + 0.5 - center.z) ** 2);
+            if (distance >= 9 && distance <= 25)
+                candidates.push({ x, z, distance });
+        }
+    }
+    candidates.sort((a, b) => a.distance - b.distance);
+    const placed = [];
+    for (let index = 0; index < count; index++) {
+        const isRavager = index === 0;
+        const radius = isRavager ? 1 : 0;
+        const entityType = isRavager ? "minecraft:ravager" : "minecraft:vindicator";
+        for (const candidate of candidates) {
+            if (placed.some((guard) => Math.abs(candidate.x + 0.5 - guard.location.x) <= radius + guard.radius &&
+                Math.abs(candidate.z + 0.5 - guard.location.z) <= radius + guard.radius))
+                continue;
+            const spawn = findNetherGuardSpawnLocation(player, candidate.x, candidate.z, isRavager);
+            if (!spawn)
+                continue;
+            if (spawnPatrolEntity(player, entityType, spawn.x, spawn.y, spawn.z)) {
+                placed.push({ location: spawn, radius });
+                break;
+            }
+        }
+    }
+    if (placed.length < count) {
+        world.sendMessage(`[NullByte] Nether entry guards for ${player.name}: spawned ${placed.length}/${count}. Check nearby floor, clearance, loaded blocks, and spawn errors.`);
     }
 }
 function applyCommandPenalty(player, reason, baseNoise) {
@@ -631,7 +702,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.1.1]§r",
+            "§a[HEXCORE TERMINAL v0.1.2]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -1221,7 +1292,7 @@ function checkDimensionEntry(player) {
         }
         // Deploy at entry even if noise is already high and no band escalation fires.
         const patrolCount = getScore(OBJ.perm) < PERM_USER ? 7 : 4;
-        spawnMisusePatrols(player, patrolCount, "BREACH");
+        spawnNetherEntryGuards(player, patrolCount);
         if (getScore(OBJ.perm) < PERM_USER) {
             // Unauthenticated on top of no firewall bypass: heavier than a standard breach.
             world.sendMessage(`§4[SENTINEL]§r  ${player.name} entered the Nether unauthenticated. Heavy response deployed.`);
