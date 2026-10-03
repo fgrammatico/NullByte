@@ -467,51 +467,78 @@ function findNetherGuardSpawnLocation(
 
 function spawnNetherEntryGuards(player: Player, count: number): void {
   if (player.dimension.id !== "minecraft:nether" || count <= 0) return;
-  const center = player.location;
-  const candidates: { x: number; z: number; distance: number }[] = [];
-  for (let x = Math.floor(center.x) - 5; x <= Math.floor(center.x) + 5; x++) {
-    for (let z = Math.floor(center.z) - 5; z <= Math.floor(center.z) + 5; z++) {
-      const distance = ((x + 0.5 - center.x) ** 2) + ((z + 0.5 - center.z) ** 2);
-      if (distance >= 9 && distance <= 25) candidates.push({ x, z, distance });
-    }
-  }
-  candidates.sort((a, b) => a.distance - b.distance);
+  const playerName = player.name;
+  const waveToken = {};
+  pendingNetherGuardWaves.set(playerName, waveToken);
   const placed: { location: Vector3; radius: number }[] = [];
-  let spawnAttempts = 0;
-  const failures = new Map<string, { count: number; example: string }>();
-  const reportFailure = (reason: string, detail: string): void => {
-    const failure = failures.get(reason);
-    if (failure) {
-      failure.count++;
-    } else {
-      failures.set(reason, { count: 1, example: detail });
+  const spawnedIndices = new Set<number>();
+  let attemptNumber = 0;
+
+  const attemptSpawn = (): void => {
+    if (pendingNetherGuardWaves.get(playerName) !== waveToken) return;
+    const onlinePlayer = world.getAllPlayers().find((p) => p.name === playerName);
+    if (!onlinePlayer || onlinePlayer.dimension.id !== "minecraft:nether" || getScore(OBJ.victory) >= 1) {
+      pendingNetherGuardWaves.delete(playerName);
+      return;
     }
-  };
-  for (let index = 0; index < count; index++) {
-    const isRavager = index === 0;
-    const radius = isRavager ? 1 : 0;
-    const entityType = isRavager ? "minecraft:ravager" : "minecraft:vindicator";
-    for (const candidate of candidates) {
-      if (placed.some((guard) =>
-        Math.abs(candidate.x + 0.5 - guard.location.x) <= radius + guard.radius &&
-        Math.abs(candidate.z + 0.5 - guard.location.z) <= radius + guard.radius
-      )) continue;
-      const spawn = findNetherGuardSpawnLocation(player, candidate.x, candidate.z, isRavager, reportFailure);
-      if (!spawn) continue;
-      spawnAttempts++;
-      if (spawnPatrolEntity(player, entityType, spawn.x, spawn.y, spawn.z, reportFailure)) {
-        placed.push({ location: spawn, radius });
-        break;
+    player = onlinePlayer;
+    attemptNumber++;
+    const center = player.location;
+    const candidates: { x: number; z: number; distance: number }[] = [];
+    for (let x = Math.floor(center.x) - 5; x <= Math.floor(center.x) + 5; x++) {
+      for (let z = Math.floor(center.z) - 5; z <= Math.floor(center.z) + 5; z++) {
+        const distance = ((x + 0.5 - center.x) ** 2) + ((z + 0.5 - center.z) ** 2);
+        if (distance >= 9 && distance <= 25) candidates.push({ x, z, distance });
       }
     }
-  }
-  if (placed.length < count) {
-    world.sendMessage(`[NullByte] Nether entry guards for ${player.name}: spawned ${placed.length}/${count}. Check nearby floor, clearance, loaded blocks, and spawn errors.`);
-    world.sendMessage(`[NullByte] Guard diagnostic: arrival ${center.x.toFixed(2)} ${center.y.toFixed(2)} ${center.z.toFixed(2)} in ${player.dimension.id}; candidate columns ${candidates.length}; summon attempts ${spawnAttempts}.`);
-    for (const [reason, failure] of failures) {
-      world.sendMessage(`[NullByte] Guard diagnostic: ${reason}, ${failure.count} failed checks; example ${failure.example}`);
+    candidates.sort((a, b) => a.distance - b.distance);
+    let spawnAttempts = 0;
+    const failures = new Map<string, { count: number; example: string }>();
+    const reportFailure = (reason: string, detail: string): void => {
+      const failure = failures.get(reason);
+      if (failure) {
+        failure.count++;
+      } else {
+        failures.set(reason, { count: 1, example: detail });
+      }
+    };
+    for (let index = 0; index < count; index++) {
+      // Remember each guard separately so partial waves never duplicate on retry.
+      if (spawnedIndices.has(index)) continue;
+      const isRavager = index === 0;
+      const radius = isRavager ? 1 : 0;
+      const entityType = isRavager ? "minecraft:ravager" : "minecraft:vindicator";
+      for (const candidate of candidates) {
+        if (placed.some((guard) =>
+          Math.abs(candidate.x + 0.5 - guard.location.x) <= radius + guard.radius &&
+          Math.abs(candidate.z + 0.5 - guard.location.z) <= radius + guard.radius
+        )) continue;
+        const spawn = findNetherGuardSpawnLocation(player, candidate.x, candidate.z, isRavager, reportFailure);
+        if (!spawn) continue;
+        spawnAttempts++;
+        if (spawnPatrolEntity(player, entityType, spawn.x, spawn.y, spawn.z, reportFailure)) {
+          placed.push({ location: spawn, radius });
+          spawnedIndices.add(index);
+          break;
+        }
+      }
     }
-  }
+    if (placed.length < count && attemptNumber < 11 &&
+        (failures.has("unavailable block") || failures.has("block read error") || failures.has("spawn error"))) {
+      // Try now, then every half second for at most five seconds while chunks load.
+      system.runTimeout(attemptSpawn, 10);
+      return;
+    }
+    pendingNetherGuardWaves.delete(playerName);
+    if (placed.length < count) {
+      world.sendMessage(`[NullByte] Nether entry guards for ${playerName}: spawned ${placed.length}/${count}. Check nearby floor, clearance, loaded blocks, and spawn errors.`);
+      world.sendMessage(`[NullByte] Guard diagnostic: arrival ${center.x.toFixed(2)} ${center.y.toFixed(2)} ${center.z.toFixed(2)} in ${player.dimension.id}; candidate columns ${candidates.length}; summon attempts ${spawnAttempts}; loading checks ${attemptNumber}/11.`);
+      for (const [reason, failure] of failures) {
+        world.sendMessage(`[NullByte] Guard diagnostic: ${reason}, ${failure.count} failed checks; example ${failure.example}`);
+      }
+    }
+  };
+  attemptSpawn();
 }
 
 function applyCommandPenalty(player: Player, reason: string, baseNoise: number): void {
@@ -1049,6 +1076,7 @@ function resetSharedState(): void {
   lastFlagState.clear();
   lastDimension.clear();
   lastChatDispatch.clear();
+  pendingNetherGuardWaves.clear();
 }
 
 function handleLogin(origin: CustomCommandOrigin, ...args: unknown[]): CustomCommandResult {
@@ -1408,6 +1436,7 @@ let tickCount = 0;
 let lastNoiseBand: NoiseBand | undefined;
 let lastPatrolTick = 0;
 const lastDimension = new Map<string, string>();
+const pendingNetherGuardWaves = new Map<string, object>();
 
 // Puzzle flags are immutable shared discoveries. Seed their baseline once when
 // the script starts, then announce and reward every later 0 -> 1 transition.
@@ -1541,6 +1570,7 @@ function checkDimensionEntry(player: Player): void {
   const currentDimension = player.dimension.id;
   const previousDimension = lastDimension.get(player.name);
   lastDimension.set(player.name, currentDimension);
+  if (currentDimension !== "minecraft:nether") pendingNetherGuardWaves.delete(player.name);
   if (!previousDimension || previousDimension === currentDimension) return;
 
   if (currentDimension === "minecraft:nether" && getScore(OBJ.fwall) < 1) {
@@ -1664,6 +1694,10 @@ system.run(gameTick);
 // ---------------------------------------------------------------------------
 // Player join handler
 // ---------------------------------------------------------------------------
+
+world.afterEvents.playerLeave.subscribe((event) => {
+  pendingNetherGuardWaves.delete(event.playerName);
+});
 
 world.afterEvents.playerJoin.subscribe((event) => {
   // Wait 3 seconds for the player to fully load before applying settings

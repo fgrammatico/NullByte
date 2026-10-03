@@ -18,6 +18,7 @@ const functionNames = [
   "spawnPatrolEntity",
   "findNetherGuardSpawnLocation",
   "spawnNetherEntryGuards",
+  "resetSharedState",
   "checkDimensionEntry",
   "gameTick",
 ];
@@ -46,6 +47,8 @@ function createEntryState({
   const messages = [];
   const titles = [];
   const teleports = [];
+  const retries = [];
+  const pendingNetherGuardWaves = new Map();
   const lastDimension = new Map([["Builder", "minecraft:overworld"]]);
   const player = {
     name: "Builder",
@@ -69,10 +72,12 @@ function createEntryState({
       player.dimension = options.dimension;
     },
   };
+  const players = [player];
   const runtime = runInNewContext(`${handler}
     lastNoiseBand = getNoiseBand(getScore(OBJ.noise));
      ({ checkEntry: checkDimensionEntry, gameTick,
-       findGuard: findNetherGuardSpawnLocation, spawnGuards: spawnNetherEntryGuards });
+       findGuard: findNetherGuardSpawnLocation, spawnGuards: spawnNetherEntryGuards,
+       reset: resetSharedState });
   `, {
     OBJ: {
       noise: "noise", perm: "perm", fwall: "fwall", p02: "p02",
@@ -89,6 +94,11 @@ function createEntryState({
     lastNoiseBand: undefined,
     lastPatrolTick: 0,
     lastDimension,
+    pendingNetherGuardWaves,
+    lastFlagState: new Map(),
+    lastChatDispatch: new Map(),
+    ALL_OBJECTIVES: Object.keys(scores),
+    GLOBAL_PARTICIPANT: "NB_GLOBAL",
     getScore: (objective) => scores[objective] ?? 0,
     setScore: (objective, value) => { scores[objective] = value; },
     addNoise: (amount) => {
@@ -98,20 +108,35 @@ function createEntryState({
       patrols.push({ target, count, band, dimension: target.dimension.id });
     },
     ensureSharedStateRegistered: () => {},
+    ensureObjectivesRegistered: () => {},
     announceFlagGains: () => {},
     enforceBoundary: () => {},
     noiseBar: () => "",
-    system: { run: () => {} },
+    system: {
+      run: () => {},
+      runTimeout: (callback, ticks) => { retries.push({ callback, ticks }); return retries.length; },
+    },
     world: {
       sendMessage: (message) => {
         messages.push(message);
         if (message.startsWith("[NullByte] Nether entry guards")) warnings.push(message);
       },
-      getAllPlayers: () => [player],
+      getAllPlayers: () => players,
       getDimension: (name) => ({ id: `minecraft:${name}` }),
     },
   });
-  return { ...runtime, player, scores, patrols, guards, warnings, messages, titles, teleports, lastDimension };
+  const flushRetries = () => {
+    let attempts = 0;
+    while (retries.length) {
+      assert.ok(attempts++ < 20, "guard retries must be bounded");
+      const retry = retries.shift();
+      assert.equal(retry.ticks, 10);
+      retry.callback();
+    }
+    return attempts;
+  };
+  return { ...runtime, player, players, scores, patrols, guards, warnings, messages, titles,
+    teleports, lastDimension, retries, pendingNetherGuardWaves, flushRetries };
 }
 
 test("unauthorized logged-in Nether entry spawns one ravager and three vindicators nearby", () => {
@@ -302,6 +327,8 @@ test("entry guards do not spawn on liquid floors", () => {
 test("entry guards skip unloaded nearby blocks and report incomplete deployment", () => {
   const state = createEntryState({ getBlock: () => undefined });
   state.checkEntry(state.player);
+  assert.equal(state.warnings.length, 0);
+  assert.equal(state.flushRetries(), 10);
   assert.equal(state.guards.length, 0);
   assert.match(state.warnings[0], /spawned 0\/4/);
   assert.ok(state.messages.some((message) => /Guard diagnostic: unavailable block/.test(message)));
@@ -311,6 +338,7 @@ test("entry guards skip unloaded nearby blocks and report incomplete deployment"
 test("failed API and command spawns are reported rather than counted as deployed", () => {
   const state = createEntryState({ spawnFails: true });
   state.checkEntry(state.player);
+  state.flushRetries();
   assert.equal(state.guards.length, 0);
   assert.match(state.warnings[0], /spawned 0\/4/);
   assert.ok(state.messages.some((message) => /summon attempts [1-9]/.test(message)));
@@ -331,6 +359,7 @@ test("block read exceptions are distinguished from missing floor", () => {
     getBlock: () => { throw new Error("chunk not loaded"); },
   });
   state.checkEntry(state.player);
+  state.flushRetries();
   assert.equal(state.guards.length, 0);
   assert.ok(state.messages.some((message) => /Guard diagnostic: block read error.*chunk not loaded/.test(message)));
   assert.ok(!state.messages.some((message) => /Guard diagnostic: no floor/.test(message)));
@@ -352,4 +381,89 @@ test("close entry search is not tied to block centres at the player's position",
     const distance = Math.hypot(location.x - 118.1, location.z - 1.9);
     assert.ok(distance >= 3 && distance <= 5);
   }
+});
+
+test("entry wave retries unavailable blocks and spawns after they load", () => {
+  let loaded = false;
+  const state = createEntryState({ permission: 0,
+    getBlock: ({ y }) => loaded ? { isAir: y >= 87, isLiquid: false } : undefined,
+  });
+  state.checkEntry(state.player);
+  assert.equal(state.guards.length, 0);
+  assert.equal(state.retries.length, 1);
+  assert.equal(state.warnings.length, 0);
+  loaded = true;
+  assert.equal(state.flushRetries(), 1);
+  assert.equal(state.guards.length, 7);
+  assert.equal(state.guards.filter((guard) => guard.type === "minecraft:ravager").length, 1);
+  assert.equal(state.pendingNetherGuardWaves.size, 0);
+  assert.equal(state.warnings.length, 0);
+  assert.equal(state.scores.noise, 75);
+  assert.equal(state.scores.locked, 0);
+});
+
+test("partial wave retries only missing guards without duplicating the ravager", () => {
+  const state = createEntryState();
+  const originalSpawn = state.player.dimension.spawnEntity;
+  let loaded = false;
+  state.player.dimension.spawnEntity = (type, location) => {
+    if (!loaded && type === "minecraft:vindicator") throw new Error("chunk not ready");
+    return originalSpawn(type, location);
+  };
+  state.checkEntry(state.player);
+  assert.equal(state.guards.length, 1);
+  loaded = true;
+  state.flushRetries();
+  assert.equal(state.guards.length, 4);
+  assert.equal(state.guards.filter((guard) => guard.type === "minecraft:ravager").length, 1);
+});
+
+for (const stop of ["leave Nether", "disconnect", "reset", "victory"]) {
+  test(`pending entry wave stops on ${stop}`, () => {
+    let loaded = false;
+    const state = createEntryState({
+      getBlock: ({ y }) => loaded ? { isAir: y >= 87, isLiquid: false } : undefined,
+    });
+    state.checkEntry(state.player);
+    if (stop === "leave Nether") {
+      state.player.dimension.id = "minecraft:overworld";
+      state.checkEntry(state.player);
+    } else if (stop === "disconnect") {
+      state.players.length = 0;
+    } else if (stop === "reset") {
+      state.reset();
+    } else {
+      state.scores.victory = 1;
+    }
+    loaded = true;
+    state.flushRetries();
+    assert.equal(state.guards.length, 0);
+    assert.equal(state.pendingNetherGuardWaves.size, 0);
+    assert.equal(state.warnings.length, 0);
+  });
+}
+
+test("a new crossing supersedes an old pending entry wave", () => {
+  let loaded = false;
+  const state = createEntryState({
+    getBlock: ({ y }) => loaded ? { isAir: y >= 87, isLiquid: false } : undefined,
+  });
+  state.checkEntry(state.player);
+  state.player.dimension.id = "minecraft:overworld";
+  state.checkEntry(state.player);
+  state.player.dimension.id = "minecraft:nether";
+  state.checkEntry(state.player);
+  loaded = true;
+  state.flushRetries();
+  assert.equal(state.guards.length, 4);
+  assert.equal(state.guards.filter((guard) => guard.type === "minecraft:ravager").length, 1);
+});
+
+test("permanently unavailable blocks exhaust retries and print one final diagnostic", () => {
+  const state = createEntryState({ getBlock: () => undefined });
+  state.checkEntry(state.player);
+  assert.equal(state.flushRetries(), 10);
+  assert.equal(state.warnings.length, 1);
+  assert.ok(state.messages.some((message) => /loading checks 11\/11/.test(message)));
+  assert.equal(state.pendingNetherGuardWaves.size, 0);
 });
