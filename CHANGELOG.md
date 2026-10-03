@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.1.2
+
+- fix(nether): Keep entry penalties from locking players out [patch] (9998dfd)
+
 ## 0.1.1
 
 - Merge pull request #2 from fgrammatico/nether (3fe86fe)
