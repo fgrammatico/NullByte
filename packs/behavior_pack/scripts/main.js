@@ -759,7 +759,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.2.0]§r",
+            "§a[HEXCORE TERMINAL v0.2.1]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -1291,7 +1291,7 @@ function checkBossMusic() {
     const bossDefeated = getScore(OBJ.enc);
     if (bossMusicBaselineSeeded) {
         if (lastBossLiveScore < 1 && bossLive >= 1) {
-            world.playMusic("music.game.endboss", { loop: true });
+            world.playMusic("music.nullbyte.boss", { loop: true });
         }
         if (lastBossDefeatedScore < 1 && bossDefeated >= 1) {
             world.stopMusic();
