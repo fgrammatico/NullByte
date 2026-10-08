@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.2.4
+
+- fix(scripts): Shrink and lengthen credits title so it does not clip or overlap chat (f6dada5)
+
 ## 0.2.3
 
 - feat(scripts): Register a custom end-credits music track [patch] (cd2b99e)
