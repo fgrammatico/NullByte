@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.2.0
+
+- fix(scripts): Auto-trigger root exploit on port knock, add victory return point and weather[minor] (4e48b1d)
+
 ## 0.1.5
 
 - fix(nether): Retry entry guards while chunks load [patch] (8b55922)
