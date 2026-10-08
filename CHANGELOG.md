@@ -2,6 +2,12 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.2.1
+
+- fix(test): Stub checkBossMusic in dimension-entry test harness (0d66156)
+- feat(scripts): Register a custom boss music track instead of the vanilla one[patch] (0688708)
+- feat(scripts): Loop endboss music during the boss fight, stop it on defeat (ce32ff3)
+
 ## 0.2.0
 
 - fix(scripts): Auto-trigger root exploit on port knock, add victory return point and weather[minor] (4e48b1d)
