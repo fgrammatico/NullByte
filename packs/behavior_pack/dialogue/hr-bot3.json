@@ -1,0 +1,13 @@
+{
+  "format_version": "1.17",
+  "minecraft:npc_dialogue": {
+    "scenes": [
+      {
+        "scene_tag": "hr_bot3_bridge",
+        "npc_name": "HR_BOT3",
+        "text": "I said RETURN TO THE ALLOWED AREA. Was that too technical?\n\nThis is the Nether fort bridge, not reception. ZERO sent withers and flying guards. Apparently a polite email wasn't enough.\n\nCross to the fort, read the PCs, find the room key. Your assessment now includes DODGING.",
+        "buttons": []
+      }
+    ]
+  }
+}

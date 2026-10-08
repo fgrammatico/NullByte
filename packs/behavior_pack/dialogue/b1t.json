@@ -24,7 +24,7 @@
       {
         "scene_tag": "b1t_example",
         "npc_name": "B1T",
-        "text": "Try 01000010.\n\nLine it up: 0 1 0 0 0 0 1 0 under 128 64 32 16 8 4 2 1.\n\nOnly the 64 switch and the 2 switch are on. 64 + 2 = 66. Look 66 up on the wall: it's B.\n\nYour byte is different. Do the same thing to it.",
+        "text": "Example with 01000010.\n\nYou would line it up: 0 1 0 0 0 0 1 0 under 128 64 32 16 8 4 2 1.\n\nOnly the 64 switch and the 2 switch should be on to retrieve the byte. 64 + 2 = 66. Look 66 up on the message: it's B.\n\nYour byte is different. Do the same thing to it.",
         "buttons": [
           {
             "name": "Back",

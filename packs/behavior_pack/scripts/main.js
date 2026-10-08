@@ -1,4 +1,4 @@
-import { world, system, Player, GameMode, BlockVolume, CommandPermissionLevel, CustomCommandParamType, } from "@minecraft/server";
+import { world, system, Player, GameMode, BlockVolume, CommandPermissionLevel, CustomCommandParamType, WeatherType, TimeOfDay, } from "@minecraft/server";
 import { CustomCommandStatus } from "@minecraft/server";
 import { GAME_CONFIG } from "./game-config.js";
 // ---------------------------------------------------------------------------
@@ -12,6 +12,7 @@ const GLOBAL_PARTICIPANT = GAME_CONFIG.globalParticipant;
 // Walk to each corner of the playable area and record the X,Z values below.
 // ---------------------------------------------------------------------------
 const BOUNDARY = GAME_CONFIG.boundary;
+const VICTORY_RETURN = GAME_CONFIG.victoryReturn;
 // ---------------------------------------------------------------------------
 // Noise thresholds
 // ---------------------------------------------------------------------------
@@ -737,6 +738,10 @@ function handlePortKnock(rawPort) {
     }
     setScore(OBJ.knock, 0);
     setScore(OBJ.p07, 1);
+    if (getScore(OBJ.perm) >= PERM_ADMIN) {
+        const anchor = world.getAllPlayers().find((p) => p.dimension.id === "minecraft:the_end");
+        runRootShutdownSequence(anchor);
+    }
 }
 // ---------------------------------------------------------------------------
 // Command handlers
@@ -1084,68 +1089,88 @@ function handleExploit(origin, ...args) {
                 applyCommandPenalty(player, "[exploit root] Must execute from the End system core.", 30);
                 return;
             }
-            addNoise(50);
-            setPermission(PERM_ROOT);
-            setScore(OBJ.victory, 1);
-            setScore(OBJ.locked, 0);
-            player.sendMessage("§a[exploit root]§r  Root access granted. Core shutdown sequence initiated...");
-            player.onScreenDisplay.setTitle("§aROOT ACCESS", {
-                subtitle: "§7System core compromised",
-                fadeInDuration: 0,
-                stayDuration: 140,
-                fadeOutDuration: 10,
-            });
-            // Staged shutdown sequence.
-            const loc = { x: player.location.x, y: player.location.y, z: player.location.z };
-            const dim = player.dimension;
-            system.runTimeout(() => {
-                try {
-                    player.sendMessage("§c[SYSTEM]§r  WARNING: Core destabilising. Emergency containment failed.");
-                }
-                catch { }
-            }, 40);
-            system.runTimeout(() => {
-                try {
-                    world.sendMessage("§6[SYSTEM]§r  SENTINEL processes terminated.");
-                }
-                catch { }
-            }, 80);
-            system.runTimeout(() => {
-                try {
-                    dim.runCommand(`summon lightning_bolt ${Math.round(loc.x)} ${Math.round(loc.y)} ${Math.round(loc.z)}`);
-                    player.sendMessage("§4[SYSTEM]§r  CRITICAL: Power surge detected.");
-                }
-                catch { }
-            }, 120);
-            system.runTimeout(() => {
-                try {
-                    player.onScreenDisplay.setTitle("§c[SYSTEM OFFLINE]", {
-                        subtitle: "§7HEXCORE terminal shutting down...",
-                        fadeInDuration: 10,
-                        stayDuration: 180,
-                        fadeOutDuration: 20,
-                    });
-                    world.sendMessage("§a[NullByte]§r  §lMISSION COMPLETE§r\n" +
-                        `  ${player.name} executed the root exploit.\n` +
-                        "  The network has been dismantled.");
-                }
-                catch { }
-            }, 200);
-            // Close the run: return everyone to the lobby spawn.
-            // TODO: on victory also set weather to clear/sunny and run credits + music (method TBD).
-            system.runTimeout(() => {
-                const overworld = world.getDimension("overworld");
-                for (const p of world.getAllPlayers()) {
-                    try {
-                        p.teleport({ x: BOUNDARY.spawnX + 0.5, y: BOUNDARY.spawnY, z: BOUNDARY.spawnZ + 0.5 }, { dimension: overworld });
-                    }
-                    catch { }
-                }
-            }, 220);
+            if (getScore(OBJ.victory) >= 1) {
+                player.sendMessage("§7[exploit root]§r  Root access is already active.");
+                return;
+            }
+            runRootShutdownSequence(player);
             return;
         }
         applyCommandPenalty(player, `[exploit] Unknown target: ${target}`, 2);
     });
+}
+// Shared payload for `/nb:exploit root`, also fired automatically from handlePortKnock
+// once the sequence completes while admin permission is already active.
+function runRootShutdownSequence(anchor) {
+    addNoise(50);
+    setPermission(PERM_ROOT);
+    setScore(OBJ.victory, 1);
+    setScore(OBJ.locked, 0);
+    world.sendMessage("§a[exploit root]§r  Root access granted. Core shutdown sequence initiated...");
+    for (const onlinePlayer of world.getAllPlayers()) {
+        onlinePlayer.onScreenDisplay.setTitle("§aROOT ACCESS", {
+            subtitle: "§7System core compromised",
+            fadeInDuration: 0,
+            stayDuration: 140,
+            fadeOutDuration: 10,
+        });
+    }
+    // Staged shutdown sequence. The lightning strike anchors on a player present in the End, if any.
+    const strikeLoc = anchor ? { x: anchor.location.x, y: anchor.location.y, z: anchor.location.z } : undefined;
+    const strikeDim = anchor?.dimension;
+    system.runTimeout(() => {
+        try {
+            world.sendMessage("§c[SYSTEM]§r  WARNING: Core destabilising. Emergency containment failed.");
+        }
+        catch { }
+    }, 40);
+    system.runTimeout(() => {
+        try {
+            world.sendMessage("§6[SYSTEM]§r  SENTINEL processes terminated.");
+        }
+        catch { }
+    }, 80);
+    system.runTimeout(() => {
+        try {
+            if (strikeLoc && strikeDim) {
+                strikeDim.runCommand(`summon lightning_bolt ${Math.round(strikeLoc.x)} ${Math.round(strikeLoc.y)} ${Math.round(strikeLoc.z)}`);
+            }
+            world.sendMessage("§4[SYSTEM]§r  CRITICAL: Power surge detected.");
+        }
+        catch { }
+    }, 120);
+    system.runTimeout(() => {
+        try {
+            for (const onlinePlayer of world.getAllPlayers()) {
+                onlinePlayer.onScreenDisplay.setTitle("§c[SYSTEM OFFLINE]", {
+                    subtitle: "§7HEXCORE terminal shutting down...",
+                    fadeInDuration: 10,
+                    stayDuration: 180,
+                    fadeOutDuration: 20,
+                });
+            }
+            world.sendMessage("§a[NullByte]§r  §lMISSION COMPLETE§r\n" +
+                "  The root exploit executed.\n" +
+                "  The network has been dismantled.");
+        }
+        catch { }
+    }, 200);
+    // Close the run: return everyone to the victory landing point under a clear night sky.
+    // TODO: run credits + music on victory (method TBD).
+    system.runTimeout(() => {
+        const overworld = world.getDimension("overworld");
+        try {
+            overworld.setWeather(WeatherType.Clear);
+            world.setTimeOfDay(TimeOfDay.Night);
+        }
+        catch { }
+        for (const p of world.getAllPlayers()) {
+            try {
+                p.teleport({ x: VICTORY_RETURN.x + 0.5, y: VICTORY_RETURN.y, z: VICTORY_RETURN.z + 0.5 }, { dimension: overworld });
+            }
+            catch { }
+        }
+    }, 220);
 }
 function handlePatchCovers(origin) {
     return runDeferredPlayerCommand(origin, (player) => {

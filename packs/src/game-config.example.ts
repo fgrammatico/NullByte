@@ -29,6 +29,11 @@ export const GAME_CONFIG = {
     spawnY: 0,
     spawnZ: 0,
   },
+  victoryReturn: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
   login: {
     username: "RELEASE_VALUE",
     password: "RELEASE_VALUE",
