@@ -1075,6 +1075,7 @@ function resetSharedState(): void {
   } catch {
     // Ignore; the explicit writes below still clear every known objective.
   }
+  try { world.stopMusic(); } catch {}
 
   for (const key of ALL_OBJECTIVES) {
     setScore(key, 0);
@@ -1378,10 +1379,12 @@ function runRootShutdownSequence(anchor?: Player): void {
   // TODO: run credits + music on victory (method TBD).
   system.runTimeout(() => {
     const overworld = world.getDimension("overworld");
-    try {
-      overworld.setWeather(WeatherType.Clear);
-      world.setTimeOfDay(TimeOfDay.Night);
-    } catch {}
+    // Command fallback alongside the typed API: the typed calls have been observed
+    // to silently no-op in some environments, same as the objective registration above.
+    try { overworld.setWeather(WeatherType.Clear); } catch {}
+    try { overworld.runCommand("weather clear"); } catch {}
+    try { world.setTimeOfDay(TimeOfDay.Night); } catch {}
+    try { overworld.runCommand("time set night"); } catch {}
     for (const p of world.getAllPlayers()) {
       try {
         p.teleport(
@@ -1495,6 +1498,30 @@ function announceFlagGains(): void {
     lastFlagState.set(key, value);
   }
   flagBaselineSeeded = true;
+}
+
+// nb_boss_live is builder-created (see build-guide.md Boss section), not part
+// of GAME_CONFIG.objectives, so it's read by its raw scoreboard name.
+let lastBossLiveScore = 0;
+let lastBossDefeatedScore = 0;
+let bossMusicBaselineSeeded = false;
+
+function checkBossMusic(): void {
+  const bossLive = getScore("nb_boss_live");
+  const bossDefeated = getScore(OBJ.enc);
+
+  if (bossMusicBaselineSeeded) {
+    if (lastBossLiveScore < 1 && bossLive >= 1) {
+      world.playMusic("music.game.endboss", { loop: true });
+    }
+    if (lastBossDefeatedScore < 1 && bossDefeated >= 1) {
+      world.stopMusic();
+    }
+  }
+
+  lastBossLiveScore = bossLive;
+  lastBossDefeatedScore = bossDefeated;
+  bossMusicBaselineSeeded = true;
 }
 
 function getPatrolIntervalTicks(band: NoiseBand): number {
@@ -1688,6 +1715,7 @@ function gameTick(): void {
   }
 
   announceFlagGains();
+  checkBossMusic();
 
   // Shared sprinting pressure is capped so additional local players do not
   // multiply the rate. Any sprinting player adds +1 every 2 ticks.

@@ -759,7 +759,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.1.4]§r",
+            "§a[HEXCORE TERMINAL v0.2.0]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -893,6 +893,10 @@ function resetSharedState() {
     catch {
         // Ignore; the explicit writes below still clear every known objective.
     }
+    try {
+        world.stopMusic();
+    }
+    catch { }
     for (const key of ALL_OBJECTIVES) {
         setScore(key, 0);
     }
@@ -1159,9 +1163,22 @@ function runRootShutdownSequence(anchor) {
     // TODO: run credits + music on victory (method TBD).
     system.runTimeout(() => {
         const overworld = world.getDimension("overworld");
+        // Command fallback alongside the typed API: the typed calls have been observed
+        // to silently no-op in some environments, same as the objective registration above.
         try {
             overworld.setWeather(WeatherType.Clear);
+        }
+        catch { }
+        try {
+            overworld.runCommand("weather clear");
+        }
+        catch { }
+        try {
             world.setTimeOfDay(TimeOfDay.Night);
+        }
+        catch { }
+        try {
+            overworld.runCommand("time set night");
         }
         catch { }
         for (const p of world.getAllPlayers()) {
@@ -1263,6 +1280,26 @@ function announceFlagGains() {
         lastFlagState.set(key, value);
     }
     flagBaselineSeeded = true;
+}
+// nb_boss_live is builder-created (see build-guide.md Boss section), not part
+// of GAME_CONFIG.objectives, so it's read by its raw scoreboard name.
+let lastBossLiveScore = 0;
+let lastBossDefeatedScore = 0;
+let bossMusicBaselineSeeded = false;
+function checkBossMusic() {
+    const bossLive = getScore("nb_boss_live");
+    const bossDefeated = getScore(OBJ.enc);
+    if (bossMusicBaselineSeeded) {
+        if (lastBossLiveScore < 1 && bossLive >= 1) {
+            world.playMusic("music.game.endboss", { loop: true });
+        }
+        if (lastBossDefeatedScore < 1 && bossDefeated >= 1) {
+            world.stopMusic();
+        }
+    }
+    lastBossLiveScore = bossLive;
+    lastBossDefeatedScore = bossDefeated;
+    bossMusicBaselineSeeded = true;
 }
 function getPatrolIntervalTicks(band) {
     switch (band) {
@@ -1442,6 +1479,7 @@ function gameTick() {
         checkDimensionEntry(player);
     }
     announceFlagGains();
+    checkBossMusic();
     // Shared sprinting pressure is capped so additional local players do not
     // multiply the rate. Any sprinting player adds +1 every 2 ticks.
     if (tickCount % 2 === 0 && players.some((player) => player.isSprinting)) {
