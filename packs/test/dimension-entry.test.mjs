@@ -110,6 +110,7 @@ function createEntryState({
     ensureSharedStateRegistered: () => {},
     ensureObjectivesRegistered: () => {},
     announceFlagGains: () => {},
+    checkBossMusic: () => {},
     enforceBoundary: () => {},
     noiseBar: () => "",
     system: {
