@@ -10,6 +10,16 @@
           "volume": 0.3
         }
       ]
+    },
+    "music.nullbyte.credits": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/nullbyte/credits",
+          "stream": true,
+          "volume": 0.3
+        }
+      ]
     }
   }
 }

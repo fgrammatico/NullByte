@@ -1376,7 +1376,6 @@ function runRootShutdownSequence(anchor?: Player): void {
   }, 200);
 
   // Close the run: return everyone to the victory landing point under a clear night sky.
-  // TODO: run credits + music on victory (method TBD).
   system.runTimeout(() => {
     const overworld = world.getDimension("overworld");
     // Command fallback alongside the typed API: the typed calls have been observed
@@ -1394,6 +1393,25 @@ function runRootShutdownSequence(anchor?: Player): void {
       } catch {}
     }
   }, 220);
+
+  // Credits roll once everyone has landed back at the victory point.
+  system.runTimeout(() => {
+    try { world.playMusic("music.nullbyte.credits", { loop: false }); } catch {}
+    for (const p of world.getAllPlayers()) {
+      try {
+        p.onScreenDisplay.setTitle("§6§lTHANK YOU FOR PLAYING§r", {
+          subtitle: "§7HEXCORE Evaluation Complete§r",
+          fadeInDuration: 20,
+          stayDuration: 160,
+          fadeOutDuration: 20,
+        });
+      } catch {}
+    }
+    world.sendMessage(
+      "§6[NullByte]§r  Thank you for playing my game! I hope you enjoyed it.\n" +
+      "  This Minecraft adventure was dedicated to the best gamer I know, my son Ian.",
+    );
+  }, 260);
 }
 
 function handlePatchCovers(origin: CustomCommandOrigin): CustomCommandResult {
