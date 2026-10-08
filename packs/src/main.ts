@@ -1402,9 +1402,9 @@ function runRootShutdownSequence(anchor?: Player): void {
     try { world.playMusic("music.nullbyte.credits", { loop: false }); } catch {}
     for (const p of world.getAllPlayers()) {
       try {
-        p.onScreenDisplay.setTitle("§6THANK YOU§r", {
-          subtitle: "§7FOR PLAYING - HEXCORE Evaluation Complete§r",
-          fadeInDuration: 10,
+        p.onScreenDisplay.setTitle("§6HEXCORE§r", {
+          subtitle: "§7Evaluation Complete§r",
+          fadeInDuration: 30,
           stayDuration: 300,
           fadeOutDuration: 20,
         });
