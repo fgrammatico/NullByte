@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.2.5
+
+- fix(scripts): Rebuild final credits [patch] (fb00add)
+
 ## 0.2.4
 
 - fix(scripts): Shrink and lengthen credits title so it does not clip or overlap chat (f6dada5)
