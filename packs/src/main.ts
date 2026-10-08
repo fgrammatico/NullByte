@@ -1395,14 +1395,17 @@ function runRootShutdownSequence(anchor?: Player): void {
   }, 220);
 
   // Credits roll once everyone has landed back at the victory point.
+  // Title text kept short and non-bold so it does not clip off-screen; stay
+  // duration set well beyond the chat message's own on-screen time so the
+  // central text is still readable after the chat text has faded.
   system.runTimeout(() => {
     try { world.playMusic("music.nullbyte.credits", { loop: false }); } catch {}
     for (const p of world.getAllPlayers()) {
       try {
-        p.onScreenDisplay.setTitle("§6§lTHANK YOU FOR PLAYING§r", {
-          subtitle: "§7HEXCORE Evaluation Complete§r",
-          fadeInDuration: 20,
-          stayDuration: 160,
+        p.onScreenDisplay.setTitle("§6THANK YOU§r", {
+          subtitle: "§7FOR PLAYING - HEXCORE Evaluation Complete§r",
+          fadeInDuration: 10,
+          stayDuration: 300,
           fadeOutDuration: 20,
         });
       } catch {}
