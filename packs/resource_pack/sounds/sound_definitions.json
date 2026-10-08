@@ -1,0 +1,15 @@
+{
+  "format_version": "1.26.50",
+  "sound_definitions": {
+    "music.nullbyte.boss": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/music/nullbyte/boss",
+          "stream": true,
+          "volume": 0.3
+        }
+      ]
+    }
+  }
+}

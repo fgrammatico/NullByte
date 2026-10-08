@@ -1512,7 +1512,7 @@ function checkBossMusic(): void {
 
   if (bossMusicBaselineSeeded) {
     if (lastBossLiveScore < 1 && bossLive >= 1) {
-      world.playMusic("music.game.endboss", { loop: true });
+      world.playMusic("music.nullbyte.boss", { loop: true });
     }
     if (lastBossDefeatedScore < 1 && bossDefeated >= 1) {
       world.stopMusic();
