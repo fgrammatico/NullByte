@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.2.3
+
+- feat(scripts): Register a custom end-credits music track [patch] (cd2b99e)
+
 ## 0.2.2
 
 - fix(scripts): Rebuild compiled script so the shipped build matches source [patch] (2a72b1e)
