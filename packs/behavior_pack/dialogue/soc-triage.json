@@ -5,10 +5,10 @@
       {
         "scene_tag": "soc_triage",
         "npc_name": "SOC TRIAGE",
-        "text": "INCIDENT TRIAGE\n\nReport the first log line that proves a disabled account was used again.\n\nFalse reports raise facility noise.",
+        "text": "INCIDENT TRIAGE\n\nReport the first log line that proves a disabled account was used again.\n\nFalse reports raise facility noise.\n\n04:13  admin opened a root shell\n04:15  gh0st disabled by Z3r0\n04:17  gh0st login from 203.0.113.42\n04:19  gh0st read firewall.bin",
         "buttons": [
           {
-            "name": "04:13  admin opened a root shell",
+            "name": "04:13",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
               "/execute at @initiator run summon minecraft:zombie ~1 ~ ~1",
@@ -16,7 +16,7 @@
             ]
           },
           {
-            "name": "04:15  gh0st disabled by Z3r0",
+            "name": "04:15",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
               "/execute at @initiator run summon minecraft:zombie ~1 ~ ~1",
@@ -24,14 +24,14 @@
             ]
           },
           {
-            "name": "04:17  gh0st login from 203.0.113.42",
+            "name": "04:17",
             "commands": [
               "/scoreboard players set NB_GLOBAL nb_p03 1",
               "/dialogue change @e[tag=soc_triage_npc] soc_triage_done"
             ]
           },
           {
-            "name": "04:19  gh0st read firewall.bin",
+            "name": "04:19",
             "commands": [
               "/scoreboard players add NB_GLOBAL nb_noise 5",
               "/execute at @initiator run summon minecraft:zombie ~1 ~ ~1",
