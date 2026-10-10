@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.2.6
+
+- fix(soc-triage.json): Shorten SOC TRIAGE buttons to timestamps so labels stop clipping (bfea9ad)
+
 ## 0.2.5
 
 - fix(scripts): Rebuild final credits [patch] (fb00add)
