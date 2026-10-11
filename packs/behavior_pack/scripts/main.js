@@ -804,7 +804,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v1.0.0]§r",
+            "§a[HEXCORE TERMINAL v1.0.1]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
@@ -1636,6 +1636,44 @@ function enforceBoundary(player) {
         });
     }
 }
+// ---------------------------------------------------------------------------
+// Death in the Nether/End: respawn near the death point, not the Overworld
+// ---------------------------------------------------------------------------
+// Causes where the death spot itself is the hazard; respawning there would just kill again.
+const UNSAFE_RESPAWN_CAUSES = new Set([
+    "lava",
+    "fire",
+    "fireTick",
+    "magma",
+    "campfire",
+    "soulCampfire",
+    "void",
+]);
+const lastNetherEndDeath = new Map();
+world.afterEvents.entityDie.subscribe((event) => {
+    const player = event.deadEntity;
+    if (!(player instanceof Player))
+        return;
+    const dimensionId = player.dimension.id;
+    if (dimensionId !== "minecraft:nether" && dimensionId !== "minecraft:the_end")
+        return;
+    if (UNSAFE_RESPAWN_CAUSES.has(event.damageSource.cause))
+        return;
+    lastNetherEndDeath.set(player.name, { location: player.location, dimensionId });
+});
+world.afterEvents.playerSpawn.subscribe((event) => {
+    if (event.initialSpawn)
+        return;
+    const death = lastNetherEndDeath.get(event.player.name);
+    if (!death)
+        return;
+    lastNetherEndDeath.delete(event.player.name);
+    const dimension = world.getDimension(death.dimensionId);
+    const nearby = { x: death.location.x, y: death.location.y + 1, z: death.location.z };
+    if (!event.player.tryTeleport(nearby, { dimension, checkForBlocks: true })) {
+        event.player.teleport(nearby, { dimension });
+    }
+});
 // ---------------------------------------------------------------------------
 // Additional noise sources (Phase 2+)
 // ---------------------------------------------------------------------------
