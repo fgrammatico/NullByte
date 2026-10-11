@@ -2,6 +2,12 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 1.0.0
+
+- feat(main): Locked mob spawn and grief, world update [major] (fc5da49)
+- feat(main): Locked mob spawn and grief [major] (20de741)
+- feat(main): Locked mob spawn and grief [major] (9d84c3f)
+
 ## 0.3.0
 
 - fix(main.ts): Lock time to midnight and weather to thunder independent of cheats toggle[minor] (9a1c9c5)
