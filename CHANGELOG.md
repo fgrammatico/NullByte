@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 1.0.1
+
+- fix(main): Keep inventory on death so keycards and weapons survive respawn (da17aae)
+
 ## 1.0.0
 
 - feat(main): Locked mob spawn and grief, world update [major] (fc5da49)
