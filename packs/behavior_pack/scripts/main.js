@@ -118,6 +118,14 @@ function lockEnvironment() {
         world.gameRules.doWeatherCycle = false;
     }
     catch { }
+    try {
+        world.gameRules.mobGriefing = false;
+    }
+    catch { }
+    try {
+        world.gameRules.doMobSpawning = false;
+    }
+    catch { }
     enforceEnvironmentLock();
 }
 function enforceEnvironmentLock() {
@@ -792,7 +800,7 @@ function handleHelp(origin) {
         const isAdmin = getScore(OBJ.perm) >= PERM_ADMIN;
         // Always visible
         const lines = [
-            "§a[HEXCORE TERMINAL v0.2.7]§r",
+            "§a[HEXCORE TERMINAL v0.3.0]§r",
             "§7Commands available:§r",
             "  §fnb:menu§r      — this output",
             "  §fnb:whoami§r    — current identity",
