@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 0.3.0
+
+- fix(main.ts): Lock time to midnight and weather to thunder independent of cheats toggle[minor] (9a1c9c5)
+
 ## 0.2.7
 
 - fix(soc-triage.json): Clarify SOC TRIAGE dialogue (ae37cf6)

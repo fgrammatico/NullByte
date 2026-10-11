@@ -939,7 +939,7 @@ function handleHelp(origin: CustomCommandOrigin): CustomCommandResult {
 
     // Always visible
     const lines: string[] = [
-      "§a[HEXCORE TERMINAL v0.2.7]§r",
+      "§a[HEXCORE TERMINAL v0.3.0]§r",
       "§7Commands available:§r",
       "  §fnb:menu§r      — this output",
       "  §fnb:whoami§r    — current identity",
