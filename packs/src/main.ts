@@ -146,6 +146,8 @@ function clearLegacyNoiseDisplay(): void {
 function lockEnvironment(): void {
   try { world.gameRules.doDayLightCycle = false; } catch {}
   try { world.gameRules.doWeatherCycle = false; } catch {}
+  try { world.gameRules.mobGriefing = false; } catch {}
+  try { world.gameRules.doMobSpawning = false; } catch {}
   enforceEnvironmentLock();
 }
 
