@@ -148,6 +148,7 @@ function lockEnvironment(): void {
   try { world.gameRules.doWeatherCycle = false; } catch {}
   try { world.gameRules.mobGriefing = false; } catch {}
   try { world.gameRules.doMobSpawning = false; } catch {}
+  try { world.gameRules.keepInventory = true; } catch {}
   enforceEnvironmentLock();
 }
 
