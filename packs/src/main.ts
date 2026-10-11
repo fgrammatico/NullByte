@@ -1398,6 +1398,12 @@ function runRootShutdownSequence(anchor?: Player): void {
   // Close the run: return everyone to the victory landing point under a clear night sky.
   system.runTimeout(() => {
     const overworld = world.getDimension("overworld");
+    // Re-enable the cycles the environment lock disabled for the whole run: with
+    // them off, a one-off weather/time change can update the host's own view but
+    // not reliably re-sync to already-connected non-operator clients. The match
+    // is over at this point, so there is nothing left for the lock to protect.
+    try { world.gameRules.doWeatherCycle = true; } catch {}
+    try { world.gameRules.doDayLightCycle = true; } catch {}
     // Command fallback alongside the typed API: the typed calls have been observed
     // to silently no-op in some environments, same as the objective registration above.
     try { overworld.setWeather(WeatherType.Clear); } catch {}
