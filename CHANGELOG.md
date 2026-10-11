@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 1.0.2
+
+- fix(main): Respawn near death point in Nether/End instead of the Overworld (2f95ffe)
+
 ## 1.0.1
 
 - fix(main): Keep inventory on death so keycards and weapons survive respawn (da17aae)
