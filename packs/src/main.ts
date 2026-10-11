@@ -99,6 +99,7 @@ let objectivesRegistered = false;
 world.afterEvents.worldLoad.subscribe(() => {
   ensureSharedStateRegistered();
   clearLegacyNoiseDisplay();
+  lockEnvironment();
 });
 
 // ---------------------------------------------------------------------------
@@ -137,6 +138,22 @@ function clearLegacyNoiseDisplay(): void {
   } catch {
     // Ignore failures on restricted worlds.
   }
+}
+
+// Locked to midnight/thunder for the whole run, independent of the cheats toggle.
+// The root-shutdown sequence is the only thing that switches to Night/Clear,
+// once nb_victory is set; this lock stops reasserting at that same point.
+function lockEnvironment(): void {
+  try { world.gameRules.doDayLightCycle = false; } catch {}
+  try { world.gameRules.doWeatherCycle = false; } catch {}
+  enforceEnvironmentLock();
+}
+
+function enforceEnvironmentLock(): void {
+  try { world.setTimeOfDay(TimeOfDay.Midnight); } catch {}
+  try { world.getDimension("overworld").runCommand("time set midnight"); } catch {}
+  try { world.getDimension("overworld").setWeather(WeatherType.Thunder); } catch {}
+  try { world.getDimension("overworld").runCommand("weather thunder"); } catch {}
 }
 
 function ensureSharedStateRegistered(): void {
@@ -1754,6 +1771,12 @@ function gameTick(): void {
         setScore(OBJ.noise, current - NOISE_DECAY_RATE);
       }
     }
+  }
+
+  // Environment lock — every 20 ticks (1 real second). Only reached before
+  // nb_victory is set, since the early return above skips the rest of gameTick after.
+  if (tickCount % 20 === 0) {
+    enforceEnvironmentLock();
   }
 
   // Boundary enforcement — every 10 ticks (0.5 real seconds)
