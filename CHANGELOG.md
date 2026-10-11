@@ -2,6 +2,10 @@
 
 All published NullByte releases are recorded in this file. Later entries are generated from commit subjects and bodies selected by bracketed release markers.
 
+## 1.0.3
+
+- fix(main): Re-enable weather/day cycle before clearing weather so it syncs to member clients (e0c6275)
+
 ## 1.0.2
 
 - fix(main): Respawn near death point in Nether/End instead of the Overworld (2f95ffe)
